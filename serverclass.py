@@ -7,6 +7,7 @@ import xml.etree.ElementTree as ET
 from cryptography.fernet import Fernet
 
 class Server:
+    BUFFER_SIZE = 1024
     """ Server class"""
     def __init__(self, host, port):
         self.host = host
@@ -27,7 +28,7 @@ class Server:
     def handle_client(self, client_socket):
         """Receive data type (dictionary or text file)"""
         # Converting the data received into a string
-        received_data = client_socket.recv(BUFFER_SIZE).decode()
+        received_data = client_socket.recv(self.BUFFER_SIZE).decode()
         print(received_data)
         msg_parts = received_data.split(",")
         data_type = msg_parts[0]
@@ -48,9 +49,10 @@ class Server:
 
         elif data_type == "text":
             data = msg_parts[1]
-            encrypted = bool(msg_parts[2])
-            print(data)
-            print(type(encrypted))
+            key = msg_parts[2]
+            decrypted = self.decrypt_data(data, key)
+            print("Encrypted text:", data)
+            print("Decrypted text:", decrypted)
 
             #if encrypted:
             #    # Decrypt data
@@ -58,8 +60,10 @@ class Server:
             #    data = fernet.decrypt(data)
 
             # Save to a file
-            with open("received_text.txt","wb") as my_file:
-                my_file.write(data)
+            with open("received_text.txt", "wb") as my_file:
+                my_file.write(decrypted.encode())
+            with open("received_encrypted_text.txt", "wb") as encrypted_file:
+                encrypted_file.write(data.encode())
 
     def deserialize_dictionary (self, data, data_format):
         """Deserialize the data received by the client depending on its format"""

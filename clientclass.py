@@ -13,6 +13,8 @@ class Client:
         self.port = port
         self.client_socket = socket.socket()
         self.client_socket.connect((host, port))
+        self.fernet_key = Fernet.generate_key()
+        self.fernet = Fernet(self.fernet_key)
 
     def send_dictionary (self, data_format, data):
         """Send dictionary"""
@@ -27,14 +29,29 @@ class Client:
         """Send text"""
         #if encrypt:
         #    data = self.encrypt_data(data)
-
-        msg = f"text,{data},{str(encrypt)}"
+        if encrypt:
+            encrypted_data = self.fernet.encrypt(data.encode())
+            msg = f"text,{encrypted_data.decode()},{self.fernet_key.decode()}"
+        else:
+            msg = f"text,{data},{str(encrypt)}"
         self.client_socket.send(msg.encode())
+
+    def upload_text_file(self, file_path, encrypt=False):
+        """Upload a text file"""
+        with open(file_path, 'rb') as file:
+            file_data = file.read()
+            if encrypt:
+                encrypted_data = self.fernet.encrypt(file_data)
+                msg = f"file,{file_path},{encrypted_data.decode()},{self.fernet_key.decode()}"
+            else:
+                msg = f"file,{file_path},{file_data.decode()},False"
+            self.client_socket.send(msg.encode())
+
 
     #def encrypt_data(self, data):
     #    """Encrypt data"""
-    #    key = Fernet.generate_key() 
-    #    fernet = Fernet(key) 
+    #    key = Fernet.generate_key()
+    #    fernet = Fernet(key)
     #    return fernet.encrypt(data)
 
     def serialize_dictionary (self, data_format, dictionary):
@@ -56,6 +73,11 @@ if __name__ == "__main__":
 
     client = Client(HOST, PORT)
     dictionary_data = {'key1': 'value1', 'key2': 'value2', 'key3': 'value3'}
-    TEXT = "hello world!"
-    # client.send_text(TEXT, False)
     client.send_dictionary("json", dictionary_data)
+
+    #Text File
+    TEXT = "hello world!"
+    client.send_text(TEXT, encrypt=True)
+
+    file_path = "example.txt"
+    client.upload_text_file(file_path, encrypt=True)

@@ -38,6 +38,8 @@ class Client:
 
         with open(file_path, "r") as file:
             data = file.read()
+
+        #  Encrypt If needed
         if encrypted==True:
             data = self.encrypt_data(data)
         msg = f"textfile\n\n\n{data}\n\n\n{encrypted}\n\n\n{KEY}"

@@ -54,9 +54,7 @@ class Server:
             # Separate remaining parts of the string
             if encrypted_str=="True":
                 key = eval(msg_parts[3].decode('utf-8'))
-                print(key)
                 fernet = Fernet(key)
-                print(msg_parts[1].decode())
                 data= fernet.decrypt(eval(msg_parts[1])).decode()
                 
 

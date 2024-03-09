@@ -42,7 +42,10 @@ class Client:
         #  Encrypt If needed
         if encrypted==True:
             data = self.encrypt_data(data)
-        msg = f"textfile\n\n\n{data}\n\n\n{encrypted}\n\n\n{KEY}"
+            msg = f"textfile\n\n\n{data}\n\n\n{encrypted}\n\n\n{KEY}"
+        else:
+            msg = f"textfile\n\n\n{data}\n\n\n{encrypted}"
+            
         print(msg)
         self.client_socket.send(msg.encode())
 

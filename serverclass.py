@@ -28,20 +28,17 @@ class Server:
         """Receive data type (dictionary or text file)"""
         # Converting the data received into a string
         received_data = client_socket.recv(BUFFER_SIZE)
-
         # Split the string using \n as delimenter
-        msg_parts = received_data.split(b"\n")
-
+        msg_parts = received_data.split(b"\n\n\n")
         # Check if msg is text or dictionary
         data_type = msg_parts[0].decode()
-
+        
         if data_type == "dictionary":
             print("Data type: Dictionary")
 
             # Separate remaining parts of the string
             data_format = msg_parts[1].decode()
             data = msg_parts[2]
-
             # Deserialize dictionary
             dictionary = self.deserialize_dictionary (data, data_format)
             print("Dictionary received")
@@ -52,13 +49,24 @@ class Server:
 
         elif data_type == "textfile":
             print("Data type: Text file")
+            encrypted_str = msg_parts[2].decode()
 
             # Separate remaining parts of the string
-            data = msg_parts[1].decode()
+            if encrypted_str=="True":
+                key = eval(msg_parts[3].decode('utf-8'))
+                print(key)
+                fernet = Fernet(key)
+                print(msg_parts[1].decode())
+                data= fernet.decrypt(eval(msg_parts[1])).decode()
+                
+
+                
+            else:
+                data = msg_parts[1].decode()
             encrypted_str = msg_parts[2].decode()
             # Convert "True" or "False" string to boolean
             encrypted = encrypted_str.lower() == "true"
-            print("Received data:", data)
+            print("Received data:\n", data)
             print("Data length:", len(data))
             print("Encrypted:", encrypted)
 
@@ -102,7 +110,7 @@ class Server:
 if __name__ == "__main__":
     HOST = "127.0.0.1"
     PORT = 12345
-    BUFFER_SIZE = 1024
+    BUFFER_SIZE = 4096
 
     server = Server(HOST, PORT)
     server.connect()

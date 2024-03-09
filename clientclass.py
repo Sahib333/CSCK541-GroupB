@@ -8,9 +8,10 @@ from cryptography.fernet import Fernet
 
 class Client:
     """Client class"""
-    def __init__(self, host, port):
+    def __init__(self, host, port, _key):
         self.host = host
         self.port = port
+        self._key = _key
         self.client_socket = socket.socket()
         self.client_socket.connect((host, port))
 
@@ -34,21 +35,19 @@ class Client:
 
     def send_textfile (self, file_path, encrypted):
         """Send text file"""
-        #if encrypted:
-        #    data = self.encrypt_data(data)
 
         with open(file_path, "r") as file:
-            content = file.read()
-
-        msg = f"textfile\n{content}\n{encrypted}"
+            data = file.read()
+        if encrypted==True:
+            data = self.encrypt_data(data)
+        msg = f"textfile\n\n\n{data}\n\n\n{encrypted}\n\n\n{KEY}"
         print(msg)
         self.client_socket.send(msg.encode())
 
-    #def encrypt_data(self, data):
-    #    """Encrypt data"""
-    #    key = Fernet.generate_key()
-    #    fernet = Fernet(key)
-    #    return fernet.encrypt(data)
+    def encrypt_data(self, data):
+        """Encrypt data"""
+        fernet = Fernet(KEY)
+        return fernet.encrypt(data.encode('utf-8')) 
 
     def serialize_dictionary (self, data_format, dictionary):
         """Serialize the dictionary before sending it depending on its format"""
@@ -74,9 +73,12 @@ class Client:
 if __name__ == "__main__":
     HOST = "127.0.0.1"
     PORT = 12345
+    KEY = Fernet.generate_key()
+    client = Client(HOST, PORT, KEY)
 
-    client = Client(HOST, PORT)
-    file_path = "/Users/stefanopalumbo/desktop/test.txt"
-    client.send_textfile (file_path, False)
-    dictionary_data = {'key1': 'value1', 'key2': 'value2', 'key3': 'value3'}
-    client.send_dictionary("xml", dictionary_data)
+    # dictionary_data = {'key1': 'value1', 'key2': 'value2', 'key3': 'value3'}
+    # client.send_dictionary("xml", dictionary_data)
+
+    file_path = r"C:\Users\16hee\OneDrive\Documents\Sahib\MSc Data Science and AI\CSCK541\Code\Exercises\Text100\ad.txt"
+    client.send_textfile (file_path, True)
+

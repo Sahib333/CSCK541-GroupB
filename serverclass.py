@@ -56,22 +56,11 @@ class Server:
                 key = eval(msg_parts[3].decode('utf-8'))
                 fernet = Fernet(key)
                 data= fernet.decrypt(eval(msg_parts[1])).decode()
-                
-
-                
             else:
                 data = msg_parts[1].decode()
-            encrypted_str = msg_parts[2].decode()
-            # Convert "True" or "False" string to boolean
-            encrypted = encrypted_str.lower() == "true"
+                
             print("Received data:\n", data)
             print("Data length:", len(data))
-            print("Encrypted:", encrypted)
-
-            #if encrypted:
-            #    # Decrypt data
-            #    fernet = Fernet(b"secretpassword")
-            #    data = fernet.decrypt(data)
 
             # Save to a file
             #with open("received_text.txt","wb") as my_file:

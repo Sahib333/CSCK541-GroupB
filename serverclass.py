@@ -50,7 +50,9 @@ class Server:
 
             # Print
             if self.print_screen:
-                print("Received data:", dictionary)
+                print("Received data:")
+                for key, value in dictionary.items():
+                    print(f"{key}: {value}")
 
             # Save to a file
             if self.save_file:
@@ -65,7 +67,6 @@ class Server:
             encrypted_str = msg_parts[2].decode()
             # Convert "True" or "False" string to boolean
             encrypted = encrypted_str.lower() == "true"
-            print("Received data:", data)
             print("Data length:", len(data))
             print("Encrypted:", encrypted)
 

@@ -34,6 +34,15 @@ class Client:
         # Encode the string before sending it
         self.client_socket.send(enconded_msg)
 
+        # Save dictionary to a file
+        if self.save_file:
+            dict_str = ""
+            for key, value in data.items():
+                dict_str += f"{key}: {value}\n"
+
+            with open("received_dictionary.txt", "w", encoding="utf-8") as my_file:
+                my_file.write(dict_str)
+
     def send_textfile (self, file_path, encrypted):
         """Send text file"""
         #if encrypted:
@@ -80,5 +89,6 @@ if __name__ == "__main__":
     client = Client(HOST, PORT, print_screen=True, save_file=True)
     file_path = "C:/Users/82102/PycharmProjects/CSCK541-GroupB/example.txt"
     client.send_textfile (file_path, False)
-    dictionary_data = {'key1': 'value1', 'key2': 'value2', 'key3': 'value3'}
-    client.send_dictionary("xml", dictionary_data)
+
+#    dictionary_data = {'key1': 'value1', 'key2': 'value2', 'key3': 'value3'}
+#    client.send_dictionary("xml", dictionary_data)

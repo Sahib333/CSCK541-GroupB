@@ -1,5 +1,5 @@
 """A server class"""
-
+import os
 import socket
 import pickle
 import json
@@ -8,9 +8,11 @@ from cryptography.fernet import Fernet
 
 class Server:
     """ Server class"""
-    def __init__(self, host, port):
+    def __init__(self, host, port, print_screen=False, save_file=False):
         self.host = host
         self.port = port
+        self.print_screen = print_screen
+        self.save_file = save_file
         self.server_socket = socket.socket()
         self.server_socket.bind((host, port))
         self.server_socket.listen(5)
@@ -50,29 +52,57 @@ class Server:
                 dictionary = self.deserialize_dictionary (data, data_format)
                 print("Dictionary received")
 
+                # Print
+                try:
+                    if self.print_screen:
+                        print("Received data:")
+                        for key, value in dictionary.items():
+                            print(f"{key}: {value}")
+                except Exception as e: 
+                    print(f"An error occured when printing dictionary: {e}")
                 # Save to a file
-                with open("received_dictionary.txt","w", encoding="utf-8") as my_file:
-                    my_file.write(str(dictionary))
+                try:
+                    if self.save_file:
+                        with open("received_dictionary.txt","w", encoding="utf-8") as my_file:
+                            my_file.write(str(dictionary))
+                        print("Dictionary saved to: " + os.path.abspath("received_dictionary.txt"))
+                        
+                except Exception as e:
+                    print(f"An error occured when saving the dictionary: {e}")
 
             elif data_type == "textfile":
                 print("Data type: Text file")
                 encrypted_str = msg_parts[2].decode()
 
                 # Separate remaining parts of the string
-                if encrypted_str=="True":
-                    key = eval(msg_parts[3].decode('utf-8'))
-                    fernet = Fernet(key)
-                    data= fernet.decrypt(eval(msg_parts[1])).decode()
-                else:
-                    data = msg_parts[1].decode()
-                    
-                print("Received data:\n", data)
+                try:
+                    if encrypted_str=="True":
+                        key = eval(msg_parts[3].decode('utf-8'))
+                        fernet = Fernet(key)
+                        data= fernet.decrypt(eval(msg_parts[1])).decode()
+                    else:
+                        data = msg_parts[1].decode()
+                except Exception as e:
+                    print(f"An error occured when decoding the text: {e}")  
+
                 print("Data length:", len(data))
 
-            # Save to a file
-            #with open("received_text.txt","wb") as my_file:
-            #    my_file.write(data)
-                
+                # Print
+                try:
+                    if self.print_screen:
+                        print("Received data:", data)
+                except Exception as e:
+                    print(f"An error occured when printing text to screen: {e}")
+
+                # Save to a file
+                try:
+                    if self.save_file:
+                        with open("received_text.txt","w", encoding="utf-8") as my_file:
+                            my_file.write(data)
+                        print("Text file saved to: " + os.path.abspath("received_dictionary.txt"))
+                except Exception as e:
+                    print(f"An error occured when saving the text file :{e}")
+
         except Exception as e:
             print(f"An error occured when receiving the data: {e}")
 
@@ -113,6 +143,6 @@ if __name__ == "__main__":
     HOST = "127.0.0.1"
     PORT = 12345
     BUFFER_SIZE = 4096
-
-    server = Server(HOST, PORT)
+    
+    server = Server(HOST, PORT,True, True)
     server.connect()

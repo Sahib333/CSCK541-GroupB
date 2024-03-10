@@ -8,12 +8,14 @@ from cryptography.fernet import Fernet
 
 class Client:
     """Client class"""
-    def __init__(self, host, port):
+    def __init__(self, host, port, print_screen=False, save_file=False):
         try:
             self.host = host
             self.port = port
             self.client_socket = socket.socket()
             self.client_socket.connect((host, port))
+            self.print_screen = print_screen
+            self.save_file = save_file
         except ConnectionRefusedError:
             print("The connection was refused. The server may be offline.")
         except Exception as e:
@@ -34,6 +36,16 @@ class Client:
                 # Encode the string before sending it
                 enconded_msg = msg.encode()
             self.client_socket.send(enconded_msg)
+
+            # Save dictionary to a file
+            if self.save_file:
+                dict_str = ""
+                for key, value in data.items():
+                    dict_str += f"{key}: {value}\n"
+
+                with open("received_dictionary.txt", "w", encoding="utf-8") as my_file:
+                    my_file.write(dict_str)
+
         except Exception as e:
             print(f"An error occured when sending the dictionary: {e}")
         
@@ -98,8 +110,8 @@ if __name__ == "__main__":
     PORT = 12345
     client = Client(HOST, PORT)
 
-    dictionary_data = {'key1': 'value1', 'key2': 'value2', 'key3': 'value3'}
-    client.send_dictionary("json", dictionary_data)
+    # dictionary_data = {'key1': 'value1', 'key2': 'value2', 'key3': 'value3'}
+    # client.send_dictionary("json", dictionary_data)
 
-    # file_path = r"C:\Users\16hee\OneDrive\Documents\Sahib\MSc Data Science and AI\CSCK541\Code\Exercises\Text100\ad.txt"
-    # client.send_textfile (file_path, True)
+    file_path = r"C:\Users\16hee\OneDrive\Documents\Sahib\MSc Data Science and AI\CSCK541\Code\Exercises\Text100\ad.txt"
+    client.send_textfile (file_path, True)

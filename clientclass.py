@@ -8,10 +8,9 @@ from cryptography.fernet import Fernet
 
 class Client:
     """Client class"""
-    def __init__(self, host, port, _key):
+    def __init__(self, host, port):
         self.host = host
         self.port = port
-        self._key = _key
         self.client_socket = socket.socket()
         self.client_socket.connect((host, port))
 
@@ -41,14 +40,18 @@ class Client:
 
         #  Encrypt If needed
         if encrypted==True:
+            key = Fernet.generate_key()
             data = self.encrypt_data(data)
-        msg = f"textfile\n\n\n{data}\n\n\n{encrypted}\n\n\n{KEY}"
+            msg = f"textfile\n\n\n{data}\n\n\n{encrypted}\n\n\n{key}"
+        else:
+            msg = f"textfile\n\n\n{data}\n\n\n{encrypted}"
+            
         print(msg)
         self.client_socket.send(msg.encode())
 
-    def encrypt_data(self, data):
+    def encrypt_data(self, data, key):
         """Encrypt data"""
-        fernet = Fernet(KEY)
+        fernet = Fernet(key)
         return fernet.encrypt(data.encode('utf-8')) 
 
     def serialize_dictionary (self, data_format, dictionary):
@@ -75,8 +78,7 @@ class Client:
 if __name__ == "__main__":
     HOST = "127.0.0.1"
     PORT = 12345
-    KEY = Fernet.generate_key()
-    client = Client(HOST, PORT, KEY)
+    client = Client(HOST, PORT)
 
     # dictionary_data = {'key1': 'value1', 'key2': 'value2', 'key3': 'value3'}
     # client.send_dictionary("xml", dictionary_data)

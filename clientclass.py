@@ -35,20 +35,9 @@ class Client:
                 enconded_msg = msg.encode()
             self.client_socket.send(enconded_msg)
 
-            # Save dictionary to a file
-            if self.save_file:
-                dict_str = ""
-                for key, value in data.items():
-                    dict_str += f"{key}: {value}\n"
-
-                with open("received_dictionary.txt", "w", encoding="utf-8") as my_file:
-                    my_file.write(dict_str)
-
         except Exception as e:
             print(f"An error occured when sending the dictionary: {e}")
         
-
-
     def send_textfile (self, file_path, encrypted):
         """Send text file"""
         try:

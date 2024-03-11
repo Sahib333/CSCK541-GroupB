@@ -24,8 +24,12 @@ class Server:
             while True:
                 client_socket, addr = self.server_socket.accept()
                 print(f"Connection from {addr}")
-                self.handle_client(client_socket)
-                client_socket.close()
+                try:
+                    self.handle_client(client_socket)
+                except Exception as e:
+                    print(f"An error occured: {e}")
+                finally:
+                    client_socket.close()
         except KeyboardInterrupt:
             print("Connection terminated by user.")
         except Exception as e:
@@ -40,11 +44,10 @@ class Server:
         msg_parts = received_data.split(b"\n\n\n")
         # Check if msg is text or dictionary
         data_type = msg_parts[0].decode()
-        print(data_type)
+        
         try: 
             if data_type == "dictionary":
                 print("Data type: Dictionary")
-
                 # Separate remaining parts of the string
                 data_format = msg_parts[1].decode()
                 data = msg_parts[2]
@@ -52,7 +55,7 @@ class Server:
                 dictionary = self.deserialize_dictionary (data, data_format)
                 print("Dictionary received")
 
-                # Print
+                # Print the dictionary on screen
                 try:
                     if self.print_screen:
                         print("Received data:")
@@ -60,13 +63,13 @@ class Server:
                             print(f"{key}: {value}")
                 except Exception as e: 
                     print(f"An error occured when printing dictionary: {e}")
-                # Save to a file
+                    
+                # Save the dictionary to a file
                 try:
                     if self.save_file:
                         with open("received_dictionary.txt","w", encoding="utf-8") as my_file:
                             my_file.write(str(dictionary))
-                        print("Dictionary saved to: " + os.path.abspath("received_dictionary.txt"))
-                        
+                        print("Dictionary saved to: " + os.path.abspath("received_dictionary.txt"))  
                 except Exception as e:
                     print(f"An error occured when saving the dictionary: {e}")
 
@@ -74,7 +77,7 @@ class Server:
                 print("Data type: Text file")
                 encrypted_str = msg_parts[2].decode()
 
-                # Separate remaining parts of the string
+                # Check if encrypted and decode the content of the text file
                 try:
                     if encrypted_str=="True":
                         key = eval(msg_parts[3].decode('utf-8'))
@@ -85,16 +88,14 @@ class Server:
                 except Exception as e:
                     print(f"An error occured when decoding the text: {e}")  
 
-                print("Data length:", len(data))
-
-                # Print
+                # Print the text file on screen
                 try:
                     if self.print_screen:
                         print("Received data:", data)
                 except Exception as e:
                     print(f"An error occured when printing text to screen: {e}")
 
-                # Save to a file
+                # Save the text file to a file
                 try:
                     if self.save_file:
                         with open("received_text.txt","w", encoding="utf-8") as my_file:

@@ -16,10 +16,15 @@ class Client:
             self.client_socket.connect((host, port))
             self.print_screen = print_screen
             self.save_file = save_file
+            
         except ConnectionRefusedError:
             print("The connection was refused. The server may be offline.")
+            
         except Exception as e:
             print(f"An error occured when initialising the connection: {e}")
+            
+
+    
 
     def send_dictionary (self, data_format, data):
         """Class method to send dictionary"""
@@ -48,6 +53,11 @@ class Client:
 
         except Exception as e:
             print(f"An error occured when sending the dictionary: {e}")
+
+        finally:
+            # Close the connection
+            self.client_socket.close()
+            print("Connection closed")
         
 
 
@@ -71,7 +81,11 @@ class Client:
             print("The file type is not a text file")
         except Exception as e:
             print(f"There was an error when sending the text file: {e}")
-        
+            
+         finally:
+            # Close the connection
+            self.client_socket.close()
+            print("Connection closed")       
 
 
     def encrypt_data(self, data, key):

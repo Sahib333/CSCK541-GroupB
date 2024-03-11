@@ -42,14 +42,17 @@ class Client:
                 dict_str = ""
                 for key, value in data.items():
                     dict_str += f"{key}: {value}\n"
-
+                    
                 with open("received_dictionary.txt", "w", encoding="utf-8") as my_file:
                     my_file.write(dict_str)
 
         except Exception as e:
             print(f"An error occured when sending the dictionary: {e}")
-        
 
+        finally:
+            # Close the connection
+            self.client_socket.close()
+            print("Connection closed")
 
     def send_textfile (self, file_path, encrypted):
         """Send text file"""
@@ -65,15 +68,19 @@ class Client:
                 msg = f"textfile\n\n\n{data}\n\n\n{encrypted}"
                 
             self.client_socket.send(msg.encode())
+            
         except FileNotFoundError:
             print("The file does not exist. Please check the filepath is correct.")
         except TypeError:
             print("The file type is not a text file")
         except Exception as e:
             print(f"There was an error when sending the text file: {e}")
+
+        finally:
+            # Close the connection
+            self.client_socket.close()
+            print("Connection closed")
         
-
-
     def encrypt_data(self, data, key):
         """Encrypt data"""
         try:

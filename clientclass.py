@@ -8,14 +8,12 @@ from cryptography.fernet import Fernet
 
 class Client:
     """Client class"""
-    def __init__(self, host, port, print_screen=False, save_file=False):
+    def __init__(self, host, port):
         try:
             self.host = host
             self.port = port
             self.client_socket = socket.socket()
             self.client_socket.connect((host, port))
-            self.print_screen = print_screen
-            self.save_file = save_file
         except ConnectionRefusedError:
             print("The connection was refused. The server may be offline.")
         except Exception as e:

@@ -18,27 +18,28 @@ class Client:
 
         except ConnectionRefusedError:
             print("The connection was refused. The server may be offline.")
-
         except Exception as e:
             print(f"An error occurred when initialising the connection: {e}")
 
 
     def send_dictionary(self, data_format, data):
+
         """Class method to send dictionary"""
         # Serialise dictionary
         serialized_data = self.serialize_dictionary(data_format, data)
         try:
             if data_format == "binary":
                 # if the data format is binary we don't need to encode it
-                msg = f"dictionary\n\n\n{data_format}\n\n\n"
-                encoded_msg = msg.encode() + serialized_data
+                msg = f"dictionary#|{data_format}#|"
+                enconded_msg = msg.encode() + serialized_data
 
             else:
                 # Create string with serialized dictionary and data format
-                msg = f"dictionary\n\n\n{data_format}\n\n\n{serialized_data}"
+                msg = f"dictionary#|{data_format}#|{serialized_data}"
                 # Encode the string before sending it
                 encoded_msg = msg.encode()
             self.client_socket.send(encoded_msg)
+
 
         except Exception as e:
             print(f"An error occurred when sending the dictionary: {e}")
@@ -50,19 +51,22 @@ class Client:
 
             
     def send_textfile(self, file_path, encrypted):
+
         """Send text file"""
         try:
-            with open(file_path, "r") as file:
+            with open(file_path, "r", encoding="utf-8") as file:
                 data = file.read()
             #  Encrypt If needed
-            if encrypted is True:
+            if encrypted:
                 key = Fernet.generate_key()
-                data = self.encrypt_data(data, key)
-                msg = f"textfile\n\n\n{data}\n\n\n{encrypted}\n\n\n{key}"
+                data = self.encrypt_data(data,key)
+                msg = f"textfile#|{data}#|{encrypted}#|{key}"
+
             else:
-                msg = f"textfile\n\n\n{data}\n\n\n{encrypted}"
+                msg = f"textfile#|{data}#|{encrypted}"
 
             self.client_socket.send(msg.encode())
+
         except FileNotFoundError:
             print("The file does not exist. Please check the filepath is correct.")
         except TypeError:
@@ -74,7 +78,6 @@ class Client:
             # Close the connection
             self.client_socket.close()
             print("Connection closed")
-
 
     def encrypt_data(self, data, key):
         """Encrypt data"""
@@ -94,9 +97,9 @@ class Client:
                 return json.dumps(dictionary)
             elif data_format == "xml":
                 # Helper function to convert dictionary to XML
-                def dict_to_xml(tag, d):
+                def dict_to_xml(tag, my_dict):
                     elem = ET.Element(tag)
-                    for key, value in d.items():
+                    for key, value in my_dict.items():
                         child = ET.Element(key)
                         child.text = str(value)
                         elem.append(child)
@@ -177,20 +180,5 @@ class Client:
                 xml_data = dict_to_xml("data", dictionary)
                 xml_str = ET.tostring(xml_data, encoding="unicode")
                 return xml_str
-            else:
-                raise ValueError(f"{data_format} is invalid please choose between binary, json or xml.")
         except Exception as e:
             print(f"An error ocurred when serialising the dictionary: {e}")
-
-if __name__ == "__main__":
-    HOST = "127.0.0.1"
-    PORT = 12345
-    client = Client(HOST, PORT)
-    client.user_prompt()
-    # file_path = r"C:\Users\16hee\OneDrive\Documents\Sahib\MSc Data Science and AI\CSCK541\Code\Exercises\Text100\test_dictionary.json"
-    # dictionary_data = {'key1': 'value1', 'key2': 'value2', 'key3': 'value3'}
-    # client.send_dictionary("json", dictionary_data)
-
-    # file_path = r"C:\Users\16hee\OneDrive\Documents\Sahib\MSc Data Science and AI\CSCK541\Code\Exercises\Text100\ad.txt"
-    # client.send_textfile (file_path, True)
-

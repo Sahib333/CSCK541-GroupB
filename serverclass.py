@@ -1,4 +1,5 @@
 """A server class"""
+
 import os
 import socket
 import pickle
@@ -40,12 +41,13 @@ class Server:
 
     def handle_client(self, client_socket):
         """Receive data type (dictionary or text file)"""
-        # Converting the data received into a string
+        # Receiving the data
         received_data = client_socket.recv(BUFFER_SIZE)
-        # Split the string using \n as delimiter
-        msg_parts = received_data.split(b"\n\n\n")
+        # Split the string using #| as delimiter
+        msg_parts = received_data.split(b"#|")
         # Check if msg is text or dictionary
         data_type = msg_parts[0].decode()
+        print(data_type)
 
         try:
             if data_type == "dictionary":
@@ -57,7 +59,7 @@ class Server:
                 dictionary = self.deserialize_dictionary(data, data_format)
                 print("Dictionary received")
 
-                # Print the dictionary on screen
+                # Print to screen
                 try:
                     if self.print_screen:
                         print("Received data:")
@@ -80,7 +82,7 @@ class Server:
                 print("Data type: Text file")
                 encrypted_str = msg_parts[2].decode()
 
-                # Check if encrypted and decode the content of the text file
+                # Check encryption and separate remaining parts of the string
                 try:
                     if encrypted_str == "True":
                         key = eval(msg_parts[3].decode('utf-8'))
@@ -91,14 +93,15 @@ class Server:
                 except Exception as e:
                     print(f"An error occurred when decoding the text: {e}")
 
-                # Print the text file on screen
+                # Print to screen
                 try:
                     if self.print_screen:
                         print("Received data:", data)
                 except Exception as e:
                     print(f"An error occurred when printing the text to screen: {e}")
 
-                # Save the text file to a file
+
+                # Save to a file
                 try:
                     if self.save_file:
                         with open("received_text.txt", "w", encoding="utf-8") as my_file:
@@ -116,20 +119,20 @@ class Server:
             if data_format == "binary":
                 return pickle.loads(data)
 
-            if data_format == "json":
+            elif data_format == "json":
                 return json.loads(data)
 
-            if data_format == "xml":
+            elif data_format == "xml":
                 # Helper functions to convert XML to dictionary
                 def xml_to_dict(data):
                     root = ET.fromstring(data)
-                    return _xml_to_dict_helper(root)
+                    return xml_to_dict_helper(root)
 
-                def _xml_to_dict_helper(element):
+                def xml_to_dict_helper(element):
                     result = {}
                     for child in element:
                         if len(child):
-                            result[child.tag] = _xml_to_dict_helper(child)
+                            result[child.tag] = xml_to_dict_helper(child)
                         else:
                             result[child.tag] = child.text
                     return result
@@ -139,18 +142,16 @@ class Server:
                 return data_dict
 
             else:
-                raise ValueError(f"{data_format} is not valid, please choose binary, json or xml for deserialization.")
+                raise ValueError("Data format is invalid please select binary, json or xml")
 
         except Exception as e:
             print(f"An error occurred when deserializing the dictionary: {e}")
+
 
 if __name__ == "__main__":
     HOST = "127.0.0.1"
     PORT = 12345
     BUFFER_SIZE = 4096
 
-    print_to_screen = input("Would you like to print the received data to screen? (y/n): ").lower() == "y"
-    save_to_file = input("Would you like to save the received? (y/n): ").lower() == "y"
-
-    server = Server(HOST, PORT, print_screen=print_to_screen, save_file=save_to_file)
+    server = Server(HOST, PORT, True, True)
     server.connect()

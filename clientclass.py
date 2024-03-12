@@ -6,6 +6,7 @@ import json
 import xml.etree.ElementTree as ET
 from cryptography.fernet import Fernet
 
+
 class Client:
     """Client class"""
     def __init__(self, host, port):
@@ -14,12 +15,15 @@ class Client:
             self.port = port
             self.client_socket = socket.socket()
             self.client_socket.connect((host, port))
+
         except ConnectionRefusedError:
             print("The connection was refused. The server may be offline.")
         except Exception as e:
-            print(f"An error occured when initialising the connection: {e}")
+            print(f"An error occurred when initialising the connection: {e}")
 
-    def send_dictionary (self, data_format, data):
+
+    def send_dictionary(self, data_format, data):
+
         """Class method to send dictionary"""
         # Serialise dictionary
         serialized_data = self.serialize_dictionary(data_format, data)
@@ -28,22 +32,26 @@ class Client:
                 # if the data format is binary we don't need to encode it
                 msg = f"dictionary#|{data_format}#|"
                 enconded_msg = msg.encode() + serialized_data
+
             else:
                 # Create string with serialized dictionary and data format
                 msg = f"dictionary#|{data_format}#|{serialized_data}"
                 # Encode the string before sending it
-                enconded_msg = msg.encode()
-            self.client_socket.send(enconded_msg)
+                encoded_msg = msg.encode()
+            self.client_socket.send(encoded_msg)
+
 
         except Exception as e:
-            print(f"An error occured when sending the dictionary: {e}")
+            print(f"An error occurred when sending the dictionary: {e}")
 
         finally:
             # Close the connection
             self.client_socket.close()
             print("Connection closed")
 
-    def send_textfile (self, file_path, encrypted):
+            
+    def send_textfile(self, file_path, encrypted):
+
         """Send text file"""
         try:
             with open(file_path, "r", encoding="utf-8") as file:
@@ -53,6 +61,7 @@ class Client:
                 key = Fernet.generate_key()
                 data = self.encrypt_data(data,key)
                 msg = f"textfile#|{data}#|{encrypted}#|{key}"
+
             else:
                 msg = f"textfile#|{data}#|{encrypted}"
 
@@ -76,9 +85,10 @@ class Client:
             fernet = Fernet(key)
             return fernet.encrypt(data.encode('utf-8'))
         except Exception as e:
-            print(f"An error ocurred when encrypting the data: {e}")
+            print(f"An error occurred when encrypting the data: {e}")
 
-    def serialize_dictionary (self, data_format, dictionary):
+
+    def serialize_dictionary(self, data_format, dictionary):
         """Serialize the dictionary before sending it depending on its format"""
         try:
             if data_format == "binary":
@@ -94,6 +104,78 @@ class Client:
                         child.text = str(value)
                         elem.append(child)
                     return elem
+                xml_data = dict_to_xml("data", dictionary)
+                xml_str = ET.tostring(xml_data, encoding="unicode")
+                return xml_str
+            else:
+                raise ValueError(f"{data_format} is invalid please choose between binary, json or xml.")
+        except Exception as e:
+            print(f"An error occurred when serialising the dictionary: {e}")
+
+    def user_prompt(self):
+        """Allow the user to choose the method they would like to send the data"""
+        while True:
+            print("\nFile Type:")
+            print("\n1. Send Text")
+            print("\n2. Send Dictionary")
+            print("\n3. Exit")
+
+            prompt1 = input("Choose which file type you would like to send (1/2/3): ")
+
+            if prompt1 == "1":
+                # Send a Text File
+                file_path = input("Please specify the location of the text file: ")
+                encrypted = input("Would you like to encrypt the file? (y/n): ").lower() == "y"
+                self.send_textfile(file_path, encrypted)
+                break
+
+            if prompt1 == "2":
+                # Send a dictionary
+                data_format = input("Which serialization format would you like to use? (binary/json/xml): ").lower()
+                file_path = input("Please specify the location of the file: ")
+                file_format = input("What format is the dictionary saved? (binary/json/xml): ").lower()
+
+                try:
+                    if file_format == "binary":
+                        with open(file_path, "rb") as data:
+                            dictionary_data = pickle.load(data)
+
+                    if file_format == "json":
+                        with open(file_path, "rb") as data:
+                            dictionary_data = json.load(data)
+
+                    if file_format == "xml":
+                        # Helper functions to convert XML to dictionary
+                        def xml_to_dict(data):
+                            root = ET.fromstring(data)
+                            return _xml_to_dict_helper(root)
+
+                        def _xml_to_dict_helper(element):
+                            result = {}
+                            for child in element:
+                                if len(child):
+                                    result[child.tag] = _xml_to_dict_helper(child)
+                                else:
+                                    result[child.tag] = child.text
+                            return result
+
+                        # Deserialize XML to dictionary
+                        with open(file_path, "rb") as data:
+                            dictionary_data = xml_to_dict(data)
+
+                    self.send_dictionary(data_format, dictionary_data)
+                    break
+
+                except FileNotFoundError:
+                    print("/nPlease check the filepath is correct as no such data exists at the specified location.")
+                except pickle.UnpicklingError:
+                    print("The specified dictionary is not in binary format")
+            if prompt1 == "3":
+                # Exit
+                break
+            else:
+                print("Please select a valid option")
+
 
                 xml_data = dict_to_xml("data", dictionary)
                 xml_str = ET.tostring(xml_data, encoding="unicode")

@@ -6,6 +6,7 @@ import json
 import xml.etree.ElementTree as ET
 from cryptography.fernet import Fernet
 
+
 class Server:
     """ Server class"""
     def __init__(self, host, port, print_screen=False, save_file=False):
@@ -27,20 +28,19 @@ class Server:
                 try:
                     self.handle_client(client_socket)
                 except Exception as e:
-                    print(f"An error occured: {e}")
+                    print(f"An error occurred: {e}")
                 finally:
                     client_socket.close()
         except KeyboardInterrupt:
             print("Connection terminated by user.")
         except Exception as e:
-            print(f"An error occured while connecting: {e}")
-
+            print(f"An error occurred while connecting: {e}")
 
     def handle_client(self, client_socket):
         """Receive data type (dictionary or text file)"""
         # Converting the data received into a string
         received_data = client_socket.recv(BUFFER_SIZE)
-        # Split the string using \n as delimenter
+        # Split the string using \n as delimiter
         msg_parts = received_data.split(b"\n\n\n")
         # Check if msg is text or dictionary
         data_type = msg_parts[0].decode()
@@ -52,7 +52,7 @@ class Server:
                 data_format = msg_parts[1].decode()
                 data = msg_parts[2]
                 # Deserialize dictionary
-                dictionary = self.deserialize_dictionary (data, data_format)
+                dictionary = self.deserialize_dictionary(data, data_format)
                 print("Dictionary received")
 
                 # Print the dictionary on screen
@@ -62,16 +62,16 @@ class Server:
                         for key, value in dictionary.items():
                             print(f"{key}: {value}")
                 except Exception as e:
-                    print(f"An error occured when printing the dictionary: {e}")
+                    print(f"An error occurred when printing the dictionary: {e}")
 
                 # Save the dictionary to a file
                 try:
                     if self.save_file:
-                        with open("received_dictionary.txt","w", encoding="utf-8") as my_file:
+                        with open("received_dictionary.txt", "w", encoding="utf-8") as my_file:
                             my_file.write(str(dictionary))
                         print("Dictionary saved to: " + os.path.abspath("received_dictionary.txt"))
                 except Exception as e:
-                    print(f"An error occured when saving the dictionary: {e}")
+                    print(f"An error occurred when saving the dictionary: {e}")
 
             elif data_type == "textfile":
                 print("Data type: Text file")
@@ -79,35 +79,35 @@ class Server:
 
                 # Check if encrypted and decode the content of the text file
                 try:
-                    if encrypted_str=="True":
+                    if encrypted_str == "True":
                         key = eval(msg_parts[3].decode('utf-8'))
                         fernet = Fernet(key)
-                        data= fernet.decrypt(eval(msg_parts[1])).decode()
+                        data = fernet.decrypt(eval(msg_parts[1])).decode()
                     else:
                         data = msg_parts[1].decode()
                 except Exception as e:
-                    print(f"An error occured when decoding the text: {e}")
+                    print(f"An error occurred when decoding the text: {e}")
 
                 # Print the text file on screen
                 try:
                     if self.print_screen:
                         print("Received data:", data)
                 except Exception as e:
-                    print(f"An error occured when printing the text to screen: {e}")
+                    print(f"An error occurred when printing the text to screen: {e}")
 
                 # Save the text file to a file
                 try:
                     if self.save_file:
-                        with open("received_text.txt","w", encoding="utf-8") as my_file:
+                        with open("received_text.txt", "w", encoding="utf-8") as my_file:
                             my_file.write(data)
                         print("Text file saved to: " + os.path.abspath("received_text.txt"))
                 except Exception as e:
-                    print(f"An error occured when saving the text file :{e}")
+                    print(f"An error occurred when saving the text file :{e}")
 
         except Exception as e:
-            print(f"An error occured when receiving the data: {e}")
+            print(f"An error occurred when receiving the data: {e}")
 
-    def deserialize_dictionary (self, data, data_format):
+    def deserialize_dictionary(self, data, data_format):
         """Deserialize the data received by the client depending on its format"""
         try:
             if data_format == "binary":
@@ -136,11 +136,12 @@ class Server:
                 return data_dict
 
             else:
-                raise ValueError(f"{data_format} is not valid, please choose binary, json or xml for deserialisation.")
-            
+                raise ValueError(f"{data_format} is not valid, please choose binary, json or xml for deserialization.")
+
         except Exception as e:
-            print(f"An error occured when deserializing the dictionary: {e}")
-    
+            print(f"An error occurred when deserializing the dictionary: {e}")
+
+
 if __name__ == "__main__":
     HOST = "127.0.0.1"
     PORT = 12345
@@ -149,5 +150,5 @@ if __name__ == "__main__":
     print_to_screen = input("Would you like to print the received data to screen? (y/n): ").lower() == "y"
     save_to_file = input("Would you like to save the received? (y/n): ").lower() == "y"
 
-    server = Server(HOST, PORT, print_screen = print_to_screen, save_file = save_to_file)
+    server = Server(HOST, PORT, print_screen=print_to_screen, save_file=save_to_file)
     server.connect()

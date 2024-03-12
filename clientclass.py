@@ -8,23 +8,22 @@ from cryptography.fernet import Fernet
 
 class Client:
     """Client class"""
-    def __init__(self, host, port, print_screen=False, save_file=False):
+    def __init__(self, host, port):
         try:
             self.host = host
             self.port = port
             self.client_socket = socket.socket()
             self.client_socket.connect((host, port))
-            self.print_screen = print_screen
-            self.save_file = save_file
-            
+
+
         except ConnectionRefusedError:
             print("The connection was refused. The server may be offline.")
-            
+
         except Exception as e:
             print(f"An error occured when initialising the connection: {e}")
-            
 
-    
+
+
 
     def send_dictionary (self, data_format, data):
         """Class method to send dictionary"""
@@ -42,14 +41,6 @@ class Client:
                 enconded_msg = msg.encode()
             self.client_socket.send(enconded_msg)
 
-            # Save dictionary to a file
-            if self.save_file:
-                dict_str = ""
-                for key, value in data.items():
-                    dict_str += f"{key}: {value}\n"
-
-                with open("received_dictionary.txt", "w", encoding="utf-8") as my_file:
-                    my_file.write(dict_str)
 
         except Exception as e:
             print(f"An error occured when sending the dictionary: {e}")
@@ -58,7 +49,7 @@ class Client:
             # Close the connection
             self.client_socket.close()
             print("Connection closed")
-        
+
 
 
     def send_textfile (self, file_path, encrypted):
@@ -67,13 +58,13 @@ class Client:
             with open(file_path, "r") as file:
                 data = file.read()
             #  Encrypt If needed
-            if encrypted==True:
+            if encrypted is True:
                 key = Fernet.generate_key()
                 data = self.encrypt_data(data,key)
                 msg = f"textfile\n\n\n{data}\n\n\n{encrypted}\n\n\n{key}"
             else:
                 msg = f"textfile\n\n\n{data}\n\n\n{encrypted}"
-                
+
             self.client_socket.send(msg.encode())
         except FileNotFoundError:
             print("The file does not exist. Please check the filepath is correct.")
@@ -81,18 +72,18 @@ class Client:
             print("The file type is not a text file")
         except Exception as e:
             print(f"There was an error when sending the text file: {e}")
-            
+
         finally:
             # Close the connection
             self.client_socket.close()
-            print("Connection closed")       
+            print("Connection closed")
 
 
     def encrypt_data(self, data, key):
         """Encrypt data"""
         try:
             fernet = Fernet(key)
-            return fernet.encrypt(data.encode('utf-8')) 
+            return fernet.encrypt(data.encode('utf-8'))
         except Exception as e:
             print(f"An error ocurred when encrypting the data: {e}")
 
@@ -116,16 +107,84 @@ class Client:
                 xml_data = dict_to_xml("data", dictionary)
                 xml_str = ET.tostring(xml_data, encoding="unicode")
                 return xml_str
+            else:
+                raise ValueError(f"{data_format} is invalid please choose between binary, json or xml.")
         except Exception as e:
             print(f"An error ocurred when serialising the dictionary: {e}")
+
+    def user_prompt(self):
+        "Allow the user to choose the method they would like to send the data"
+        while True:
+            print("\nFile Type:")
+            print("\n1. Send Text:")
+            print("\n2. Send Dictionary:")
+            print("\n3. Exit:")
+
+            prompt1 = input("Choose which file type you would like to send (1/2/3): ")
+
+            if prompt1 == "1":
+                # Send a Text File
+                file_path=input("Please specify the location of the text file: ")
+                encrypted=input("Would you like to encrypt the file? (y/n): ").lower()=="y"
+                self.send_textfile(file_path,encrypted)
+            
+            if prompt1 == "2":
+                # Send a dictionary
+                data_format = input("Which serialization format would you like to use? (binary/json/xml): ").lower()
+                file_path=input("Please specify the location of the text file: ")
+                file_format=input("What format is the dictionary saved? (binary/json/xml): ").lower()
+
+                try:
+                    if file_format == "binary":
+                        with open(file_path, "rb") as data:
+                            dictionary_data=pickle.load(data)
+
+                    if file_format == "json":
+                        with open(file_path, "rb") as data:
+                            dictionary_data=json.load(data)
+
+                    if file_format == "xml":
+                        # Helper functions to convert XML to dictionary
+                        def xml_to_dict(data):
+                            root = ET.fromstring(data)
+                            return _xml_to_dict_helper(root)
+
+                        def _xml_to_dict_helper(element):
+                            result = {}
+                            for child in element:
+                                if len(child):
+                                    result[child.tag] = _xml_to_dict_helper(child)
+                                else:
+                                    result[child.tag] = child.text
+                            return result
+
+                        # Deserialize XML to dictionary
+                        with open(file_path, "rb") as data:
+                            dictionary_data = xml_to_dict(data)
+                        
+                    self.send_dictionary(data_format, dictionary_data)
+
+                except FileNotFoundError:
+                    print("/nPlease check the filepath is correct as no such data exists at the specified location.")
+                except pickle.UnpicklingError:
+                    print("The specified dictionary is not in binary format")
+            if prompt1 == "3":
+                # Exit 
+                break
+            else:
+                print("Please select a valid option")
+
+            
 
 if __name__ == "__main__":
     HOST = "127.0.0.1"
     PORT = 12345
     client = Client(HOST, PORT)
 
+    client.user_prompt()
+    # file_path = r"C:\Users\16hee\OneDrive\Documents\Sahib\MSc Data Science and AI\CSCK541\Code\Exercises\Text100\test_dictionary.json"
     # dictionary_data = {'key1': 'value1', 'key2': 'value2', 'key3': 'value3'}
     # client.send_dictionary("json", dictionary_data)
 
-    file_path = r"C:\Users\16hee\OneDrive\Documents\Sahib\MSc Data Science and AI\CSCK541\Code\Exercises\Text100\ad.txt"
-    client.send_textfile (file_path, True)
+    # file_path = r"C:\Users\16hee\OneDrive\Documents\Sahib\MSc Data Science and AI\CSCK541\Code\Exercises\Text100\ad.txt"
+    # client.send_textfile (file_path, True)

@@ -33,7 +33,7 @@ class Server:
         except KeyboardInterrupt:
             print("Connection terminated by user.")
         except Exception as e:
-            print(f"An error occured: {e}")
+            print(f"An error occured while connecting: {e}")
 
 
     def handle_client(self, client_socket):
@@ -44,8 +44,8 @@ class Server:
         msg_parts = received_data.split(b"\n\n\n")
         # Check if msg is text or dictionary
         data_type = msg_parts[0].decode()
-        
-        try: 
+
+        try:
             if data_type == "dictionary":
                 print("Data type: Dictionary")
                 # Separate remaining parts of the string
@@ -61,15 +61,15 @@ class Server:
                         print("Received data:")
                         for key, value in dictionary.items():
                             print(f"{key}: {value}")
-                except Exception as e: 
-                    print(f"An error occured when printing dictionary: {e}")
-                    
+                except Exception as e:
+                    print(f"An error occured when printing the dictionary: {e}")
+
                 # Save the dictionary to a file
                 try:
                     if self.save_file:
                         with open("received_dictionary.txt","w", encoding="utf-8") as my_file:
                             my_file.write(str(dictionary))
-                        print("Dictionary saved to: " + os.path.abspath("received_dictionary.txt"))  
+                        print("Dictionary saved to: " + os.path.abspath("received_dictionary.txt"))
                 except Exception as e:
                     print(f"An error occured when saving the dictionary: {e}")
 
@@ -86,21 +86,21 @@ class Server:
                     else:
                         data = msg_parts[1].decode()
                 except Exception as e:
-                    print(f"An error occured when decoding the text: {e}")  
+                    print(f"An error occured when decoding the text: {e}")
 
                 # Print the text file on screen
                 try:
                     if self.print_screen:
                         print("Received data:", data)
                 except Exception as e:
-                    print(f"An error occured when printing text to screen: {e}")
+                    print(f"An error occured when printing the text to screen: {e}")
 
                 # Save the text file to a file
                 try:
                     if self.save_file:
                         with open("received_text.txt","w", encoding="utf-8") as my_file:
                             my_file.write(data)
-                        print("Text file saved to: " + os.path.abspath("received_dictionary.txt"))
+                        print("Text file saved to: " + os.path.abspath("received_text.txt"))
                 except Exception as e:
                     print(f"An error occured when saving the text file :{e}")
 
@@ -113,10 +113,10 @@ class Server:
             if data_format == "binary":
                 return pickle.loads(data)
 
-            elif data_format == "json":
+            if data_format == "json":
                 return json.loads(data)
 
-            elif data_format == "xml":
+            if data_format == "xml":
                 # Helper functions to convert XML to dictionary
                 def xml_to_dict(data):
                     root = ET.fromstring(data)
@@ -134,16 +134,20 @@ class Server:
                 # Deserialize XML to dictionary
                 data_dict = xml_to_dict(data)
                 return data_dict
-            
+
             else:
-                raise ValueError("Data format is invalid please select binary, json or xml")
+                raise ValueError(f"{data_format} is not valid, please choose binary, json or xml for deserialisation.")
+            
         except Exception as e:
             print(f"An error occured when deserializing the dictionary: {e}")
-
+    
 if __name__ == "__main__":
     HOST = "127.0.0.1"
     PORT = 12345
     BUFFER_SIZE = 4096
-    
-    server = Server(HOST, PORT,True, True)
+
+    print_to_screen = input("Would you like to print the received data to screen? (y/n): ").lower() == "y"
+    save_to_file = input("Would you like to save the received? (y/n): ").lower() == "y"
+
+    server = Server(HOST, PORT, print_screen = print_to_screen, save_file = save_to_file)
     server.connect()

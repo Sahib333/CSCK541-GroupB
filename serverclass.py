@@ -29,12 +29,14 @@ class Server:
                     self.handle_client(client_socket)
                 except Exception as e:
                     print(f"An error occurred: {e}")
+
                 finally:
                     client_socket.close()
         except KeyboardInterrupt:
             print("Connection terminated by user.")
         except Exception as e:
             print(f"An error occurred while connecting: {e}")
+
 
     def handle_client(self, client_socket):
         """Receive data type (dictionary or text file)"""
@@ -72,6 +74,7 @@ class Server:
                         print("Dictionary saved to: " + os.path.abspath("received_dictionary.txt"))
                 except Exception as e:
                     print(f"An error occurred when saving the dictionary: {e}")
+
 
             elif data_type == "textfile":
                 print("Data type: Text file")
@@ -140,7 +143,6 @@ class Server:
 
         except Exception as e:
             print(f"An error occurred when deserializing the dictionary: {e}")
-
 
 if __name__ == "__main__":
     HOST = "127.0.0.1"

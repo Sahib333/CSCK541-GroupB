@@ -22,6 +22,7 @@ class Client:
         except Exception as e:
             print(f"An error occurred when initialising the connection: {e}")
 
+
     def send_dictionary(self, data_format, data):
         """Class method to send dictionary"""
         # Serialise dictionary
@@ -31,6 +32,7 @@ class Client:
                 # if the data format is binary we don't need to encode it
                 msg = f"dictionary\n\n\n{data_format}\n\n\n"
                 encoded_msg = msg.encode() + serialized_data
+
             else:
                 # Create string with serialized dictionary and data format
                 msg = f"dictionary\n\n\n{data_format}\n\n\n{serialized_data}"
@@ -46,6 +48,7 @@ class Client:
             self.client_socket.close()
             print("Connection closed")
 
+            
     def send_textfile(self, file_path, encrypted):
         """Send text file"""
         try:
@@ -72,6 +75,7 @@ class Client:
             self.client_socket.close()
             print("Connection closed")
 
+
     def encrypt_data(self, data, key):
         """Encrypt data"""
         try:
@@ -79,6 +83,7 @@ class Client:
             return fernet.encrypt(data.encode('utf-8'))
         except Exception as e:
             print(f"An error occurred when encrypting the data: {e}")
+
 
     def serialize_dictionary(self, data_format, dictionary):
         """Serialize the dictionary before sending it depending on its format"""
@@ -96,7 +101,6 @@ class Client:
                         child.text = str(value)
                         elem.append(child)
                     return elem
-
                 xml_data = dict_to_xml("data", dictionary)
                 xml_str = ET.tostring(xml_data, encoding="unicode")
                 return xml_str
@@ -170,11 +174,18 @@ class Client:
                 print("Please select a valid option")
 
 
+                xml_data = dict_to_xml("data", dictionary)
+                xml_str = ET.tostring(xml_data, encoding="unicode")
+                return xml_str
+            else:
+                raise ValueError(f"{data_format} is invalid please choose between binary, json or xml.")
+        except Exception as e:
+            print(f"An error ocurred when serialising the dictionary: {e}")
+
 if __name__ == "__main__":
     HOST = "127.0.0.1"
     PORT = 12345
     client = Client(HOST, PORT)
-
     client.user_prompt()
     # file_path = r"C:\Users\16hee\OneDrive\Documents\Sahib\MSc Data Science and AI\CSCK541\Code\Exercises\Text100\test_dictionary.json"
     # dictionary_data = {'key1': 'value1', 'key2': 'value2', 'key3': 'value3'}
@@ -182,3 +193,4 @@ if __name__ == "__main__":
 
     # file_path = r"C:\Users\16hee\OneDrive\Documents\Sahib\MSc Data Science and AI\CSCK541\Code\Exercises\Text100\ad.txt"
     # client.send_textfile (file_path, True)
+

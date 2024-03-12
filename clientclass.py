@@ -82,7 +82,7 @@ class Client:
         except Exception as e:
             print(f"There was an error when sending the text file: {e}")
             
-         finally:
+        finally:
             # Close the connection
             self.client_socket.close()
             print("Connection closed")       

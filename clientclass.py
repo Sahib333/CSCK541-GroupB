@@ -78,7 +78,7 @@ class Client:
         try:
             fernet = Fernet(key)
             return fernet.encrypt(data.encode('utf-8'))
-        except Fernet.InvalidToken as ferr:
+        except fernet.InvalidToken as ferr:
             print("Invalid token for encryption:")
             print(ferr)
 

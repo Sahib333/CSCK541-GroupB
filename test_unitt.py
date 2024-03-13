@@ -65,7 +65,7 @@ class TestServerClientCommunication(unittest.TestCase):
             client.send_dictionary("json", dictionary_data)
 
             # test sending text file
-            file_path = "test.txt"
+            file_path = r"C:\Users\16hee\OneDrive\Documents\Sahib\MSc Data Science and AI\CSCK541\Code\Exercises\Text100\ad.txt"
             client.send_textfile(file_path, False)
 
         def start_server(self):

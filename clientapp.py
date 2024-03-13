@@ -26,6 +26,8 @@ class ClientApp:
                     break
                 except FileNotFoundError:
                     print("Incorrect filepath.")
+                except TypeError:
+                    print("File is not in txt format")
 
             # Send a dictionary
             elif file_type == 2:

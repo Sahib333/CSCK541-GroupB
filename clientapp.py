@@ -14,10 +14,10 @@ class ClientApp:
             print("2. Send Dictionary")
             print("3. Exit")
 
-            file_type = int(input("Choose which file type you would like to send (1/2/3): "))
+            file_type = input("Choose which file type you would like to send (1/2/3): ")
 
             # Send a Text File
-            if file_type == 1:
+            if file_type == "1":
                 try:
                     file_path = input("Please specify the location of the text file: ")
                     encrypted_input = input("Would you like to encrypt the file? (y/n): ")
@@ -30,7 +30,7 @@ class ClientApp:
                     print("File is not in txt format")
 
             # Send a dictionary
-            elif file_type == 2:
+            elif file_type == "2":
                 try:
                     data_format = input("Choose a serialization format (binary/JSON/XML): ").lower()
                     if data_format not in ["binary","json","xml"]:
@@ -38,7 +38,7 @@ class ClientApp:
 
                     dictionary_data = {}
                     print("Enter key-value pairs to create the dictionary.")
-                    print("To finish press Enter leaving the key empty when entering it.")
+                    print("To finish leave the key empty and press Enter.")
                     while True:
                         key = input("Enter key: ")
                         if not key:
@@ -51,8 +51,9 @@ class ClientApp:
                 except Exception as e:
                     print(f"An error occurred: {e}")
 
-            elif file_type == 3:
+            elif file_type == "3":
                 # Exit
+                print("Exiting the application")
                 break
 
             else:

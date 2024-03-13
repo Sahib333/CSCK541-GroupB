@@ -38,7 +38,8 @@ class Client:
                 enconded_msg = msg.encode()
             self.client_socket.send(enconded_msg)
 
-
+        except ConnectionError as ceerr:
+            print(f"An error occured when sending the dictionary: {ceerr}")
 
         finally:
             # Close the connection

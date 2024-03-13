@@ -73,7 +73,7 @@ class TestEncryption(unittest.TestCase):
 
     def test_encrypt_decrypt(self):
         # test data
-        original_data = "Hello, world!"
+        original_data = "Hello!"
 
         # encrypt data
         encrypted_data = self.client.encrypt_data(original_data)

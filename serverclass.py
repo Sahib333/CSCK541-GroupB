@@ -16,8 +16,15 @@ class Server:
         self.print_screen = print_screen
         self.save_file = save_file
         self.server_socket = socket.socket()
-        self.server_socket.bind((host, port))
-        self.server_socket.listen(5)
+        try:
+            self.server_socket.bind((host, port))
+            self.server_socket.listen(5)
+        except PermissionError:
+            print("Permission error: Unable to bind to host and port")
+        except OSError as oserr:
+            print(f"OS error: {oserr}")
+        except ValueError as veerr:
+            print(f"Value error: {veerr}")
 
     def connect(self):
         """Connect to the client"""
@@ -28,7 +35,8 @@ class Server:
                 print(f"Connection from {addr}")
                 try:
                     self.handle_client(client_socket)
-
+                except ConnectionError as ceerr:
+                    print(f"Error accepting the connection: {ceerr}")
                 finally:
                     client_socket.close()
         except KeyboardInterrupt:

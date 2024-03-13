@@ -78,7 +78,7 @@ class TestEncryption(unittest.TestCase):
     def setUp(self):
         self.HOST = "127.0.0.1"
         self.PORT = 12345
-        self.key = "utf-8"
+        self.key = b'gQqwOp0z6kRLcV80QQQlhvI3gsaUEpHH8KubS6cMdZ0='
         self.client = Client(self.HOST, self.PORT)
 
     def test_encrypt_decrypt(self):

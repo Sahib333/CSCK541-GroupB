@@ -91,7 +91,7 @@ class Server:
                     else:
                         data = msg_parts[1].decode()
 
-                except Fernet.InvalidToken as ferrerr:
+                except fernet.InvalidToken as ferrerr:
                     print("Error occurred with encryption key:")
                     print(ferrerr)
                 except TypeError as tyerr:

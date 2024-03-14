@@ -119,6 +119,7 @@ class Server:
 
 
     def decrypt_string(self, data):
+        """Decrypt the data received by the client if it is encrypted"""
         try:
             key=eval(data[3].decode('utf-8'))
             fernet = Fernet(key)

@@ -1,30 +1,22 @@
 """A server class"""
-
 import os
 import socket
 import pickle
 import json
 import xml.etree.ElementTree as ET
 from cryptography.fernet import Fernet
-# from ast import literal_eval
 
 class Server:
     """ Server class"""
     def __init__(self, host, port, print_screen=False, save_file=False):
+        self.received_data = {'key1': 'value1', 'key2': 'value2'}
         self.host = host
         self.port = port
         self.print_screen = print_screen
         self.save_file = save_file
         self.server_socket = socket.socket()
-        try:
-            self.server_socket.bind((host, port))
-            self.server_socket.listen(5)
-        except PermissionError:
-            print("Permission error: Unable to bind to host and port")
-        except OSError as oserr:
-            print(f"OS error: {oserr}")
-        except ValueError as veerr:
-            print(f"Value error: {veerr}")
+        self.server_socket.bind((host, port))
+        self.server_socket.listen(5)
 
     def connect(self):
         """Connect to the client"""
@@ -35,16 +27,14 @@ class Server:
                 print(f"Connection from {addr}")
                 try:
                     self.handle_client(client_socket)
-                except ConnectionError as ceerr:
-                    print(f"Error accepting the connection: {ceerr}")
+                except Exception as e:
+                    print(f"An error occured: {e}")
                 finally:
                     client_socket.close()
         except KeyboardInterrupt:
             print("Connection terminated by user.")
-        except socket.error as sockerr:
-            print("A socket error occurred:")
-            print(sockerr)
-
+        except Exception as e:
+            print(f"An error occured: {e}")
 
     def handle_client(self, client_socket):
         """Receive data type (dictionary or text file)"""
@@ -54,6 +44,7 @@ class Server:
         msg_parts = received_data.split(b"#|")
         # Check if msg is text or dictionary
         data_type = msg_parts[0].decode()
+        print(data_type)
 
         try:
             if data_type == "dictionary":
@@ -62,21 +53,25 @@ class Server:
                 data_format = msg_parts[1].decode()
                 data = msg_parts[2]
                 # Deserialize dictionary
-                dictionary = self.deserialize_dictionary(data, data_format)
+                dictionary = self.deserialize_dictionary (data, data_format)
                 print("Dictionary received")
 
                 # Print to screen
-                if self.print_screen:
-                    print("Received data:")
-                    for key, value in dictionary.items():
-                        print(f"{key}: {value}")
-
-                # Save the dictionary to a file
-                if self.save_file:
-                    with open("received_dictionary.txt", "w", encoding="utf-8") as my_file:
-                        my_file.write(str(dictionary))
-                    print("Dictionary saved to: " + os.path.abspath("received_dictionary.txt"))
-
+                try:
+                    if self.print_screen:
+                        print("Received data:")
+                        for key, value in dictionary.items():
+                            print(f"{key}: {value}")
+                except Exception as e:
+                    print(f"An error occured when printing dictionary: {e}")
+                # Save to a file
+                try:
+                    if self.save_file:
+                        with open("received_dictionary.txt","w", encoding="utf-8") as my_file:
+                            my_file.write(str(dictionary))
+                        print("Dictionary saved to: " + os.path.abspath("received_dictionary.txt"))
+                except Exception as e:
+                    print(f"An error occured when saving the dictionary: {e}")
 
             elif data_type == "textfile":
                 print("Data type: Text file")
@@ -84,77 +79,67 @@ class Server:
 
                 # Check encryption and separate remaining parts of the string
                 try:
-                    if encrypted_str == "True":
+                    if encrypted_str=="True":
                         key = eval(msg_parts[3].decode('utf-8'))
                         fernet = Fernet(key)
-                        data = fernet.decrypt(eval(msg_parts[1])).decode()
+                        data= fernet.decrypt(eval(msg_parts[1])).decode()
                     else:
                         data = msg_parts[1].decode()
-
-                except fernet.InvalidToken as ferrerr:
-                    print("Error occurred with encryption key:")
-                    print(ferrerr)
-                except TypeError as tyerr:
-                    print("Error occurred due to token:")
-                    print(tyerr)
-
+                except Exception as e:
+                    print(f"An error occured when decoding the text: {e}")
 
                 # Print to screen
-                if self.print_screen:
-                    print("Received data:", data)
-
+                try:
+                    if self.print_screen:
+                        print("Received data:", data)
+                except Exception as e:
+                    print(f"An error occured when printing text to screen: {e}")
 
                 # Save to a file
-                if self.save_file:
-                    with open("received_text.txt", "w", encoding="utf-8") as my_file:
-                        my_file.write(data)
-                    print("Text file saved to: " + os.path.abspath("received_text.txt"))
+                try:
+                    if self.save_file:
+                        with open("received_text.txt","w", encoding="utf-8") as my_file:
+                            my_file.write(data)
+                        print("Text file saved to: " + os.path.abspath("received_text.txt"))
+                except Exception as e:
+                    print(f"An error occured when saving the text file :{e}")
 
-        except OSError as oserr:
-            print("OS Error occurred:")
-            print(oserr)
-        except pickle.UnpicklingError as unperr:
-            print("Binary deserialization error occurred:")
-            print(unperr)
-        except json.JSONDecodeError as jsonerr:
-            print("JSON deserialisation error occurred:")
-            print(jsonerr)
-        except ET.ParseError as xmlerr:
-            print("XML deserialization error occurred:")
-            print(xmlerr)
+        except Exception as e:
+            print(f"An error occured when receiving the data: {e}")
 
-
-
-    def deserialize_dictionary(self, data, data_format):
+    def deserialize_dictionary (self, data, data_format):
         """Deserialize the data received by the client depending on its format"""
+        try:
+            if data_format == "binary":
+                return pickle.loads(data)
 
-        if data_format == "binary":
-            return pickle.loads(data)
+            elif data_format == "json":
+                return json.loads(data)
 
-        if data_format == "json":
-            return json.loads(data)
+            elif data_format == "xml":
+                # Helper functions to convert XML to dictionary
+                def xml_to_dict(data):
+                    root = ET.fromstring(data)
+                    return xml_to_dict_helper(root)
 
-        if data_format == "xml":
-            # Helper functions to convert XML to dictionary
-            def xml_to_dict(data):
-                root = ET.fromstring(data)
-                return xml_to_dict_helper(root)
+                def xml_to_dict_helper(element):
+                    result = {}
+                    for child in element:
+                        if len(child):
+                            result[child.tag] = xml_to_dict_helper(child)
+                        else:
+                            result[child.tag] = child.text
+                    return result
 
-            def xml_to_dict_helper(element):
-                result = {}
-                for child in element:
-                    if len(child):
-                        result[child.tag] = xml_to_dict_helper(child)
-                    else:
-                        result[child.tag] = child.text
-                return result
+                # Deserialize XML to dictionary
+                data_dict = xml_to_dict(data)
+                return data_dict
 
-            # Deserialize XML to dictionary
-            data_dict = xml_to_dict(data)
-            return data_dict
+            else:
+                raise ValueError("Data format is invalid please select binary, json or xml")
 
-        else:
-            raise ValueError("Data format is invalid please select binary, json or xml")
+        except Exception as e:
+            print(f"An error occured when deserializing the dictionary: {e}")
 
 
 if __name__ == "__main__":

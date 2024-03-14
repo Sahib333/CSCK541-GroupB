@@ -6,7 +6,6 @@ import pickle
 import json
 import xml.etree.ElementTree as ET
 from cryptography.fernet import Fernet
-# from ast import literal_eval
 
 class Server:
     """ Server class"""
@@ -36,7 +35,8 @@ class Server:
                 print(f"Connection from {addr}")
                 try:
                     self.handle_client(client_socket)
-
+                except ConnectionError as ceerr:
+                    print(f"Error accepting the connection: {ceerr}")
                 finally:
                     client_socket.close()
         except KeyboardInterrupt:
@@ -44,6 +44,7 @@ class Server:
         except socket.error as sockerr:
             print("A socket error occurred:")
             print(sockerr)
+
 
     def handle_client(self, client_socket):
         """Receive data type (dictionary or text file)"""
@@ -53,8 +54,6 @@ class Server:
         msg_parts = received_data.split(b"#|")
         # Check if msg is text or dictionary
         data_type = msg_parts[0].decode()
-        
-        
 
         try:
             if data_type == "dictionary":
@@ -82,8 +81,8 @@ class Server:
             elif data_type == "textfile":
                 print("Data type: Text file")
                 encrypted_str = msg_parts[2].decode()
-                
-                
+
+
 
                 # Check encryption and separate remaining parts of the string
 
@@ -118,6 +117,7 @@ class Server:
             print("XML deserialization error occurred:")
             print(xmlerr)
 
+
     def decrypt_string(self, data):
         try:
             key=eval(data[3].decode('utf-8'))
@@ -131,6 +131,7 @@ class Server:
         except TypeError as tyerr:
             print("Error occurred due to token:")
             print(tyerr)
+
 
     def deserialize_dictionary(self, data, data_format):
         """Deserialize the data received by the client depending on its format"""

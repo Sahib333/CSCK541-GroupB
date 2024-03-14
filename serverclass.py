@@ -83,21 +83,10 @@ class Server:
                 encrypted_str = msg_parts[2].decode()
 
                 # Check encryption and separate remaining parts of the string
-                try:
-                    if encrypted_str == "True":
-                        key = eval(msg_parts[3].decode('utf-8'))
-                        fernet = Fernet(key)
-                        data = fernet.decrypt(eval(msg_parts[1])).decode()
-                    else:
-                        data = msg_parts[1].decode()
-
-                except fernet.InvalidToken as ferrerr:
-                    print("Error occurred with encryption key:")
-                    print(ferrerr)
-                except TypeError as tyerr:
-                    print("Error occurred due to token:")
-                    print(tyerr)
-
+                if encrypted_str == "True":  
+                    data = self.decrypt_string(msg_parts)
+                else:
+                    data = msg_parts[1].decode()
 
                 # Print to screen
                 if self.print_screen:
@@ -123,7 +112,20 @@ class Server:
             print("XML deserialization error occurred:")
             print(xmlerr)
 
+    def decrypt_string(self, data):
+        # Decrypt the text file
+        try:
+            key=eval(data[3].decode('utf-8'))
+            fernet = Fernet(key)
+            data = fernet.decrypt(eval(data[1])).decode()
+            return data
 
+        except fernet.InvalidToken as ferrerr:
+            print("Error occurred with encryption key:")
+            print(ferrerr)
+        except TypeError as tyerr:
+            print("Error occurred due to token:")
+            print(tyerr)
 
     def deserialize_dictionary(self, data, data_format):
         """Deserialize the data received by the client depending on its format"""

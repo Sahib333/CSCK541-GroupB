@@ -16,15 +16,9 @@ class Server:
         self.print_screen = print_screen
         self.save_file = save_file
         self.server_socket = socket.socket()
-        try:
-            self.server_socket.bind((host, port))
-            self.server_socket.listen(5)
-        except PermissionError:
-            print("Permission error: Unable to bind to host and port")
-        except OSError as oserr:
-            print(f"OS error: {oserr}")
-        except ValueError as veerr:
-            print(f"Value error: {veerr}")
+        self.server_socket.bind((host, port))
+        self.server_socket.listen(5)
+
 
     def connect(self):
         """Connect to the client"""
@@ -35,8 +29,7 @@ class Server:
                 print(f"Connection from {addr}")
                 try:
                     self.handle_client(client_socket)
-                except ConnectionError as ceerr:
-                    print(f"Error accepting the connection: {ceerr}")
+
                 finally:
                     client_socket.close()
         except KeyboardInterrupt:
@@ -44,7 +37,6 @@ class Server:
         except socket.error as sockerr:
             print("A socket error occurred:")
             print(sockerr)
-
 
     def handle_client(self, client_socket):
         """Receive data type (dictionary or text file)"""
@@ -54,6 +46,8 @@ class Server:
         msg_parts = received_data.split(b"#|")
         # Check if msg is text or dictionary
         data_type = msg_parts[0].decode()
+        
+        
 
         try:
             if data_type == "dictionary":
@@ -81,22 +75,16 @@ class Server:
             elif data_type == "textfile":
                 print("Data type: Text file")
                 encrypted_str = msg_parts[2].decode()
+                
+                
 
                 # Check encryption and separate remaining parts of the string
-                try:
-                    if encrypted_str == "True":
-                        key = eval(msg_parts[3].decode('utf-8'))
-                        fernet = Fernet(key)
-                        data = fernet.decrypt(eval(msg_parts[1])).decode()
-                    else:
-                        data = msg_parts[1].decode()
 
-                except fernet.InvalidToken as ferrerr:
-                    print("Error occurred with encryption key:")
-                    print(ferrerr)
-                except TypeError as tyerr:
-                    print("Error occurred due to token:")
-                    print(tyerr)
+                if encrypted_str == "True":
+                    data = self.decrypt_string(msg_parts)
+                else:
+                    data = msg_parts[1].decode()
+
 
 
                 # Print to screen
@@ -123,7 +111,19 @@ class Server:
             print("XML deserialization error occurred:")
             print(xmlerr)
 
+    def decrypt_string(self, data):
+        try:
+            key=eval(data[3].decode('utf-8'))
+            fernet = Fernet(key)
+            data = fernet.decrypt(eval(data[1])).decode()
+            return data
 
+        except fernet.InvalidToken as ferrerr:
+            print("Error occurred with encryption key:")
+            print(ferrerr)
+        except TypeError as tyerr:
+            print("Error occurred due to token:")
+            print(tyerr)
 
     def deserialize_dictionary(self, data, data_format):
         """Deserialize the data received by the client depending on its format"""

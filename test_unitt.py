@@ -141,6 +141,7 @@ class TestDeserialization(unittest.TestCase):
         self.assertEqual(deserialized_data, {'key1': 'value1', 'key2': 'value2'})
 
 
+
 if __name__ == '__main__':
     unittest.main()
 

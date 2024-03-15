@@ -16,14 +16,17 @@ class Client:
             self.client_socket.connect((host, port))
         except ConnectionRefusedError:
             print("The connection was refused. The server may be offline.")
-        except Exception as e:
-            print(f"An error occured when initialising the connection: {e}")
+        except socket.timeout:
+            print("Connection timed out")
+        except OSError as oserr:
+            print("OS Error occurred:")
+            print(oserr)
 
     def send_dictionary (self, data_format, data):
         """Class method to send dictionary"""
         # Serialise dictionary
-        serialized_data = self.serialize_dictionary(data_format, data)
         try:
+            serialized_data = self.serialize_dictionary(data_format, data)
             if data_format == "binary":
                 # if the data format is binary we don't need to encode it
                 msg = f"dictionary#|{data_format}#|"
@@ -35,8 +38,8 @@ class Client:
                 enconded_msg = msg.encode()
             self.client_socket.send(enconded_msg)
 
-        except Exception as e:
-            print(f"An error occured when sending the dictionary: {e}")
+        except ConnectionError as ceerr:
+            print(f"An error occured when sending the dictionary: {ceerr}")
 
         finally:
             # Close the connection
@@ -75,17 +78,18 @@ class Client:
         try:
             fernet = Fernet(key)
             return fernet.encrypt(data.encode('utf-8'))
-        except Exception as e:
-            print(f"An error ocurred when encrypting the data: {e}")
+        except fernet.InvalidToken as ferr:
+            print("Invalid token for encryption:")
+            print(ferr)
 
     def serialize_dictionary (self, data_format, dictionary):
         """Serialize the dictionary before sending it depending on its format"""
         try:
             if data_format == "binary":
                 return pickle.dumps(dictionary)
-            elif data_format == "json":
+            if data_format == "json":
                 return json.dumps(dictionary)
-            elif data_format == "xml":
+            if data_format == "xml":
                 # Helper function to convert dictionary to XML
                 def dict_to_xml(tag, my_dict):
                     elem = ET.Element(tag)
@@ -98,5 +102,19 @@ class Client:
                 xml_data = dict_to_xml("data", dictionary)
                 xml_str = ET.tostring(xml_data, encoding="unicode")
                 return xml_str
-        except Exception as e:
-            print(f"An error ocurred when serialising the dictionary: {e}")
+
+        except pickle.PickleError as perr:
+            print("Binary serialization error occurred:")
+            print(perr)
+        except json.JSONDecodeError as jsonerr:
+            print("JSON serialization error occurred:")
+            print(jsonerr)
+        except ET.ParseError as xmlerr:
+            print("XML serialization error occurred:")
+            print(xmlerr)
+        except ValueError as verr:
+            print("Value error occurred:")
+            print(verr)
+        except TypeError as typerr:
+            print("File type error occurred:")
+            print(typerr)

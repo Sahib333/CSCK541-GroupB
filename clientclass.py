@@ -55,7 +55,9 @@ class Client:
             if encrypted:
                 key = Fernet.generate_key()
                 data = self.encrypt_data(data,key)
-                msg = f"textfile#|{data}#|{encrypted}#|{key}"
+                key_str = key.decode('utf-8')
+                data_str = data.decode('utf-8')
+                msg = f"textfile#|{data_str}#|{encrypted}#|{key_str}"
             else:
                 msg = f"textfile#|{data}#|{encrypted}"
 

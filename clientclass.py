@@ -30,13 +30,13 @@ class Client:
             if data_format == "binary":
                 # if the data format is binary we don't need to encode it
                 msg = f"dictionary#|{data_format}#|"
-                enconded_msg = msg.encode() + serialized_data
+                encoded_msg = msg.encode() + serialized_data
             else:
                 # Create string with serialized dictionary and data format
                 msg = f"dictionary#|{data_format}#|{serialized_data}"
                 # Encode the string before sending it
-                enconded_msg = msg.encode()
-            self.client_socket.send(enconded_msg)
+                encoded_msg = msg.encode()
+            self.client_socket.send(encoded_msg)
 
         except ConnectionError as ceerr:
             print(f"An error occured when sending the dictionary: {ceerr}")
@@ -67,8 +67,6 @@ class Client:
             print("The file does not exist. Please check the filepath is correct.")
         except TypeError:
             print("The file type is not a text file")
-        except Exception as e:
-            print(f"There was an error when sending the text file: {e}")
 
         finally:
             # Close the connection

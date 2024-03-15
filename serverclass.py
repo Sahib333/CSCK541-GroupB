@@ -5,8 +5,7 @@ import socket
 import pickle
 import json
 import xml.etree.ElementTree as ET
-from cryptography.fernet import Fernet
-# from ast import literal_eval
+from cryptography.fernet import Fernet, InvalidToken
 
 class Server:
     """ Server class"""
@@ -83,8 +82,10 @@ class Server:
                 encrypted_str = msg_parts[2].decode()
 
                 # Check encryption and separate remaining parts of the string
-                if encrypted_str == "True":  
-                    data = self.decrypt_string(msg_parts)
+                if encrypted_str == "True":
+                    encrypted_data = msg_parts[1]
+                    encryption_key = eval(msg_parts[3].decode('utf-8'))
+                    data = self.decrypt_string(encrypted_data, encryption_key)
                 else:
                     data = msg_parts[1].decode()
 
@@ -112,15 +113,14 @@ class Server:
             print("XML deserialization error occurred:")
             print(xmlerr)
 
-    def decrypt_string(self, data):
+    def decrypt_string(self, data, key):
         # Decrypt the text file
         try:
-            key=eval(data[3].decode('utf-8'))
             fernet = Fernet(key)
-            data = fernet.decrypt(eval(data[1])).decode()
-            return data
-
-        except fernet.InvalidToken as ferrerr:
+            decrypted_data = fernet.decrypt(eval(data)).decode()
+            return decrypted_data
+            
+        except InvalidToken as ferrerr:
             print("Error occurred with encryption key:")
             print(ferrerr)
         except TypeError as tyerr:

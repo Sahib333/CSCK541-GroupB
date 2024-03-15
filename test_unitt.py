@@ -232,8 +232,8 @@ class TestEdgeCaseUnexpectedData(unittest.TestCase):
         # Wait for server to finish handling client
         time.sleep(1)
 
-        # Assert that server handled unexpected data gracefully
-        # You can add specific assertions based on your server's behavior
+        # Assert that server handled unexpected data 
+        # Add specific assertions based on server's behaviour
         self.assertTrue(True)  # Placeholder assertion
 
 class TestEdgeCaseLargeData(unittest.TestCase):
@@ -256,8 +256,8 @@ class TestEdgeCaseLargeData(unittest.TestCase):
         # Wait for server to finish handling client
         time.sleep(5)  # Adjust sleep time as needed
 
-        # Assert that server handled large data gracefully
-        # Add specific assertions based on your server's behavior
+        # Assert that server handled large data 
+        # Add specific assertions based on server's behaviour
         self.assertTrue(True)  #
 
 

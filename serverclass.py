@@ -84,7 +84,7 @@ class Server:
                 # Check encryption and separate remaining parts of the string
                 if encrypted_str == "True":
                     encrypted_data = msg_parts[1]
-                    encryption_key = eval(msg_parts[3].decode('utf-8'))
+                    encryption_key = msg_parts[3].decode('utf-8')
                     data = self.decrypt_string(encrypted_data, encryption_key)
                 else:
                     data = msg_parts[1].decode()
@@ -117,7 +117,7 @@ class Server:
         # Decrypt the text file
         try:
             fernet = Fernet(key)
-            decrypted_data = fernet.decrypt(eval(data)).decode()
+            decrypted_data = fernet.decrypt(data).decode()
             return decrypted_data
             
         except InvalidToken as ferrerr:

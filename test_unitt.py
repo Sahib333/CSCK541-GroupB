@@ -56,7 +56,7 @@ class TestEncryptionDecryption(unittest.TestCase):
 
     def test_encrypt_decrypt(self):
         # test data
-        original_data = 'utf-8'
+        original_data = 'Hello!'
 
         # encrypt data
         encrypted_data = self.client.encrypt_data(original_data, self.key)
@@ -65,7 +65,7 @@ class TestEncryptionDecryption(unittest.TestCase):
         self.assertNotEqual(encrypted_data, original_data)
 
         # decrypt data using the server's decryption method
-        decrypted_data = self.server.decrypt_string(encrypted_data)
+        decrypted_data = self.server.decrypt_string(encrypted_data, self.key)
 
         # ensure decrypted data matches the original data
         self.assertEqual(decrypted_data, original_data)

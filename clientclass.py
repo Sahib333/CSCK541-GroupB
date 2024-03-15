@@ -4,7 +4,7 @@ import socket
 import pickle
 import json
 import xml.etree.ElementTree as ET
-from cryptography.fernet import Fernet
+from cryptography.fernet import Fernet, InvalidToken
 
 class Client:
     """Client class"""
@@ -78,7 +78,7 @@ class Client:
         try:
             fernet = Fernet(key)
             return fernet.encrypt(data.encode('utf-8'))
-        except fernet.InvalidToken as ferr:
+        except InvalidToken as ferr:
             print("Invalid token for encryption:")
             print(ferr)
 

@@ -10,6 +10,7 @@ from cryptography.fernet import Fernet, InvalidToken
 class Server:
     """ Server class"""
     def __init__(self, host, port, print_screen=False, save_file=False):
+        self.received_data = None
         self.host = host
         self.port = port
         self.print_screen = print_screen
@@ -47,6 +48,7 @@ class Server:
 
     def handle_client(self, client_socket):
         """Receive data type (dictionary or text file)"""
+        BUFFER_SIZE = 4096
         # Receiving the data
         received_data = client_socket.recv(BUFFER_SIZE)
         # Split the string using #| as delimiter

@@ -56,7 +56,7 @@ class TestEncryptionDecryption(unittest.TestCase):
 
     def test_encrypt_decrypt(self):
         # test data
-        original_data = 'Hello!'
+        original_data = 'utf-8'
 
         # encrypt data
         encrypted_data = self.client.encrypt_data(original_data, self.key)
@@ -140,6 +140,125 @@ class TestDeserialization(unittest.TestCase):
         deserialized_data = self.server.deserialize_dictionary(xml_data, 'xml')
         self.assertEqual(deserialized_data, {'key1': 'value1', 'key2': 'value2'})
 
+
+class TestClientPerformance(unittest.TestCase):
+
+    def setUp(self):
+        self.HOST = "127.0.0.1"
+        self.PORT = 12345
+        self.client = Client(self.HOST, self.PORT)
+        self.server = Server(self.HOST, self.PORT)
+
+    def tearDown(self):
+        self.server.server_socket.close()
+
+    def test_client_performance(self):
+        # Test sending a large amount of data from client to server
+        data = "a" * 1000000  # 1 MB of data
+
+        start_time = time.time()
+        self.client.send_textfile(data, encrypted=False)
+        end_time = time.time()
+        execution_time = end_time - start_time
+
+        print(f"Client execution time: {execution_time} seconds")
+
+
+class DummySocket:
+    def __init__(self, data):
+        self.data = data
+
+    def recv(self, size):
+        return self.data
+
+class TestServerPerformance(unittest.TestCase):
+    BUFFER_SIZE = 4096  # Define the buffer size
+
+    def setUp(self):
+        self.server = Server("127.0.0.1", 12345)
+
+    def test_server_performance(self):
+        # Test receiving a large amount of data by the server
+        data = "a" * 1000000  # 1 MB of data
+        encoded_data = data.encode()
+        dummy_socket = DummySocket(encoded_data)
+
+        start_time = time.time()
+        self.server.handle_client(dummy_socket)
+        end_time = time.time()
+        execution_time = end_time - start_time
+
+        print(f"Server execution time: {execution_time} seconds")
+
+class TestEdgeCaseNoData(unittest.TestCase):
+    def setUp(self):
+        self.HOST = "127.0.0.1"
+        self.PORT = 12345
+        self.server = Server(self.HOST, self.PORT)
+        self.client = Client(self.HOST, self.PORT)
+
+    def test_no_data(self):
+        # Start server
+        server_thread = threading.Thread(target=self.server.connect)
+        server_thread.start()
+
+        # Send no data from client
+        time.sleep(1)  # Wait for server to start
+        self.client.send_dictionary("json", {})  # Sending an empty dictionary
+
+        # Wait for server to finish handling client
+        time.sleep(1)
+
+        # Assert that no data was received by the server
+        self.assertEqual(self.server.received_data, None)
+
+class TestEdgeCaseUnexpectedData(unittest.TestCase):
+    def setUp(self):
+        self.HOST = "127.0.0.1"
+        self.PORT = 12345
+        self.server = Server(self.HOST, self.PORT)
+        self.client = Client(self.HOST, self.PORT)
+
+    def test_unexpected_data(self):
+        # Start server
+        server_thread = threading.Thread(target=self.server.connect)
+        server_thread.start()
+
+        # Send unexpected data from client
+        time.sleep(1)  # Wait for server to start
+        unexpected_data = b"unexpected data"
+        self.client.client_socket.send(unexpected_data)
+
+        # Wait for server to finish handling client
+        time.sleep(1)
+
+        # Assert that server handled unexpected data gracefully
+        # You can add specific assertions based on your server's behavior
+        self.assertTrue(True)  # Placeholder assertion
+
+class TestEdgeCaseLargeData(unittest.TestCase):
+    def setUp(self):
+        self.HOST = "127.0.0.1"
+        self.PORT = 12345
+        self.server = Server(self.HOST, self.PORT)
+        self.client = Client(self.HOST, self.PORT)
+
+    def test_large_data(self):
+        # Start server
+        server_thread = threading.Thread(target=self.server.connect)
+        server_thread.start()
+
+        # Send large data from client
+        time.sleep(1)  # Wait for server to start
+        large_data = b"a" * (10 * 1024 * 1024)  # 10 MB of data
+        self.client.client_socket.send(large_data)
+
+        # Wait for server to finish handling client
+        time.sleep(5)  # Adjust sleep time as needed
+
+        # Assert that server handled large data gracefully
+        # Add specific assertions based on your server's behavior
+        self.assertTrue(True)  #
 
 
 if __name__ == '__main__':

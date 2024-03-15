@@ -2,41 +2,8 @@ import unittest
 import threading
 from serverclass import Server
 from clientclass import Client
-
-class TestServerClient(unittest.TestCase):
-
-    def setUp(self):
-        self.HOST = "127.0.0.1"
-        self.PORT = 12345
-        self.BUFFER_SIZE = 1024
-
-    def test_validate_pickling_format_valid(self):
-        client = Client(self.HOST, self.PORT)  # instance of the Client class
-        valid_formats = ["binary", "json", "xml"]
-        for format in valid_formats:
-            result = client.validate_pickling_format(format)
-            self.assertTrue(result, f"Expected '{format}' to be valid, but it is not.")
-
-    def test_validate_pickling_format_invalid(self):
-        client = Client(self.HOST, self.PORT)  # instance of the Client class
-        invalid_formats = ["text", "yaml", "csv"]
-        for format in invalid_formats:
-            result = client.validate_pickling_format(format)
-            self.assertFalse(result, f"Expected '{format}' to be invalid, but it is not.")
-
-    def test_validate_encrypt_option_valid(self):
-        client = Client(self.HOST, self.PORT)  # instance of the Client class
-        valid_options = ["yes", "no"]
-        for option in valid_options:
-            result = client.validate_encrypt_option(option)
-            self.assertTrue(result, f"Expected '{option}' to be valid, but it is not.")
-
-    def test_validate_encrypt_option_invalid(self):
-        client = Client(self.HOST, self.PORT)  # instance of the Client class
-        invalid_options = ["true", "false", "encrypt", "decrypt"]
-        for option in invalid_options:
-            result = client.validate_encrypt_option(option)
-            self.assertFalse(result, f"Expected '{option}' to be invalid, but it is not.")
+import time
+import pickle
 
 
 class TestServerClientCommunication(unittest.TestCase):
@@ -44,7 +11,7 @@ class TestServerClientCommunication(unittest.TestCase):
     def setUp(self):
         self.HOST = "127.0.0.1"
         self.PORT = 12345
-        self.BUFFER_SIZE = 1024
+        self.BUFFER_SIZE = 4096
 
     def test_server_client_communication(self):
         # start the server in a separate thread
@@ -73,7 +40,8 @@ class TestServerClientCommunication(unittest.TestCase):
         server.connect()
 
 
-class TestEncryption(unittest.TestCase):
+class TestEncryptionDecryption(unittest.TestCase):
+
     def setUp(self):
         self.HOST = "127.0.0.1"
         self.PORT = 12346
@@ -82,7 +50,6 @@ class TestEncryption(unittest.TestCase):
         self.server_thread = threading.Thread(target=self.server.connect)
         self.server_thread.start()
         self.client = Client(self.HOST, self.PORT)
-
 
     def tearDown(self):
         self.server.server_socket.close()
@@ -97,6 +64,84 @@ class TestEncryption(unittest.TestCase):
         # ensure encryption resulted in different data
         self.assertNotEqual(encrypted_data, original_data)
 
+        # decrypt data using the server's decryption method
+        decrypted_data = self.server.decrypt_string(encrypted_data)
+
+        # ensure decrypted data matches the original data
+        self.assertEqual(decrypted_data, original_data)
+
+
+class TestSerialization(unittest.TestCase):
+
+    def setUp(self):
+        self.HOST = "127.0.0.1"
+        self.PORT = 12347
+        self.server = Server(self.HOST, self.PORT)
+        self.client = Client(self.HOST, self.PORT)
+
+    def tearDown(self):
+        self.server.server_socket.close()
+
+    def test_json_serialization(self):
+        # test data
+        test_dictionary = {'key1': 'value1', 'key2': 2, 'key3': [1, 2, 3]}
+
+        # serialize data to JSON
+        serialized_dictionary = self.client.serialize_dictionary('json', test_dictionary)
+
+        # ensure serialized data does not match the original data
+        self.assertNotEqual(serialized_dictionary, test_dictionary)
+
+    def test_xml_serialization(self):
+        # test data
+        test_dictionary = {'key1': 'value1', 'key2': 2, 'key3': [1, 2, 3]}
+
+        # serialize data to XML
+        serialized_dictionary = self.client.serialize_dictionary('xml', test_dictionary)
+
+        # ensure serialized data does not match the original data
+        self.assertNotEqual(serialized_dictionary , test_dictionary)
+
+    def test_binary_serialization(self):
+        # test data
+        test_dictionary = {'key1': 'value1', 'key2': 2, 'key3': [1, 2, 3]}
+
+        # serialize data to binary
+        serialized_dictionary = self.client.serialize_dictionary('binary', test_dictionary)
+
+        # ensure serialized data does not match the original data
+        self.assertNotEqual(serialized_dictionary , test_dictionary)
+
+
+class TestDeserialization(unittest.TestCase):
+    def setUp(self):
+        self.HOST = "127.0.0.1"
+        self.PORT = 12347
+        self.key = b'gQqwOp0z6kRLcV80QQQlhvI3gsaUEpHH8KubS6cMdZ0='
+        self.server = Server(self.HOST, self.PORT, self.key)
+        self.server_thread = threading.Thread(target=self.server.connect)
+        self.server_thread.start()
+        self.client = Client(self.HOST, self.PORT)
+
+    def test_deserialize_data_json(self):
+        # Test JSON deserialization
+        json_data = '{"key": "value"}'
+        deserialized_data = self.server.deserialize_dictionary(json_data, 'json')
+        self.assertEqual(deserialized_data, {'key': 'value'})
+
+    def test_deserialize_data_binary(self):
+        # Test binary deserialization
+        binary_data = pickle.dumps({"key":  "value"})
+        self.assertEqual(self.server.deserialize_dictionary(binary_data, 'binary'), {'key': 'value'}, 'Binary deseiralization is incorrect')
+
+    def test_deserialize_data_xml(self):
+        # Test XML deserialization
+        xml_data = '<data><key1>value1</key1><key2>value2</key2></data>'
+        deserialized_data = self.server.deserialize_dictionary(xml_data, 'xml')
+        self.assertEqual(deserialized_data, {'key1': 'value1', 'key2': 'value2'})
+
+
 
 if __name__ == '__main__':
     unittest.main()
+

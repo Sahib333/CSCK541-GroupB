@@ -13,6 +13,7 @@ class Server:
         self.received_data = None
         self.host = host
         self.port = port
+        self.client_connected = False
         self.print_screen = print_screen
         self.save_file = save_file
         self.server_socket = socket.socket()
@@ -48,14 +49,16 @@ class Server:
 
     def handle_client(self, client_socket):
         """Receive data type (dictionary or text file)"""
-        BUFFER_SIZE = 4096
+        buffer_size = 4096
         # Receiving the data
-        received_data = client_socket.recv(BUFFER_SIZE)
+        received_data = client_socket.recv(buffer_size)
         # Split the string using #| as delimiter
         msg_parts = received_data.split(b"#|")
         # Check if msg is text or dictionary
         data_type = msg_parts[0].decode()
-
+        # Server will raise value error if unexpected data is received
+        if not received_data:
+            raise ValueError("Unexpected data received")
         try:
             if data_type == "dictionary":
                 print("Data type: Dictionary")
@@ -116,12 +119,12 @@ class Server:
             print(xmlerr)
 
     def decrypt_string(self, data, key):
+        """Function to decrypt text file"""
         # Decrypt the text file
         try:
             fernet = Fernet(key)
             decrypted_data = fernet.decrypt(data).decode()
             return decrypted_data
-            
         except InvalidToken as ferrerr:
             print("Error occurred with encryption key:")
             print(ferrerr)

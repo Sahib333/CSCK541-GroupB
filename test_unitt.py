@@ -5,6 +5,7 @@ import time
 import pickle
 from serverclass import Server
 from clientclass import Client
+
 class TestServerClientCommunication(unittest.TestCase):
     """Class to test server client communication"""
     def setUp(self):
@@ -14,8 +15,10 @@ class TestServerClientCommunication(unittest.TestCase):
         self.server = Server(self.host, self.port)
         self.server_thread = threading.Thread(target=self.server.connect)
         self.server_thread.start()
+
     def tearDown(self):
         self.server.server_socket.close()
+
     def test_server_client_communication(self):
         """Function to test a simple dictionary to send from client to server"""
         # start the server in a separate thread
@@ -36,10 +39,12 @@ class TestServerClientCommunication(unittest.TestCase):
         file_path = r"C:\Users\16hee\OneDrive\Documents\Sahib\MSc Data Science and " \
                     r"AI\CSCK541\Code\Exercises\Text100\ad.txt "
         client.send_textfile(file_path, False)
+
     def start_server(self):
         """Function that connects to server"""
         server = Server(self.host, self.port)
         server.connect()
+
 class TestEncryptionDecryption(unittest.TestCase):
     """Class to test security of information transfer"""
     def setUp(self):
@@ -50,8 +55,10 @@ class TestEncryptionDecryption(unittest.TestCase):
         self.server_thread = threading.Thread(target=self.server.connect)
         self.server_thread.start()
         self.client = Client(self.host, self.port)
+
     def tearDown(self):
         self.server.server_socket.close()
+
     def test_encrypt_decrypt(self):
         """Function that tests encryption and decryption"""
         # test data
@@ -64,6 +71,7 @@ class TestEncryptionDecryption(unittest.TestCase):
         decrypted_data = self.server.decrypt_string(encrypted_data, self.key)
         # ensure decrypted data matches the original data
         self.assertEqual(decrypted_data, original_data)
+
 class TestSerialization(unittest.TestCase):
     """Class to test serialization of Client class"""
     def setUp(self):
@@ -73,6 +81,7 @@ class TestSerialization(unittest.TestCase):
         self.client = Client(self.host, self.port)
     def tearDown(self):
         self.server.server_socket.close()
+
     def test_json_serialization(self):
         """Function to test JSON serialization"""
         # test data
@@ -81,6 +90,7 @@ class TestSerialization(unittest.TestCase):
         serialized_dictionary = self.client.serialize_dictionary('json', test_dictionary)
         # ensure serialized data does not match the original data
         self.assertNotEqual(serialized_dictionary, test_dictionary)
+
     def test_xml_serialization(self):
         """Function to test XML serialization"""
         # test data
@@ -89,6 +99,7 @@ class TestSerialization(unittest.TestCase):
         serialized_dictionary = self.client.serialize_dictionary('xml', test_dictionary)
         # ensure serialized data does not match the original data
         self.assertNotEqual(serialized_dictionary , test_dictionary)
+
     def test_binary_serialization(self):
         """Function to test Binary serialization"""
         # test data
@@ -97,6 +108,7 @@ class TestSerialization(unittest.TestCase):
         serialized_dictionary = self.client.serialize_dictionary('binary', test_dictionary)
         # ensure serialized data does not match the original data
         self.assertNotEqual(serialized_dictionary , test_dictionary)
+
 class TestDeserialization(unittest.TestCase):
     """Class to test deserialization of the Server class"""
     def setUp(self):
@@ -109,12 +121,14 @@ class TestDeserialization(unittest.TestCase):
         self.client = Client(self.host, self.port)
     def tearDown(self):
         self.server.server_socket.close()
+
     def test_deserialize_data_json(self):
         """Function to test JSON deserialization"""
         # Test JSON deserialization
         json_data = '{"key": "value"}'
         deserialized_data = self.server.deserialize_dictionary(json_data, 'json')
         self.assertEqual(deserialized_data, {'key': 'value'})
+
     def test_deserialize_data_binary(self):
         """Function to test binary deserialization"""
         # Test binary deserialization
@@ -130,6 +144,7 @@ class TestDeserialization(unittest.TestCase):
         xml_data = '<data><key1>value1</key1><key2>value2</key2></data>'
         deserialized_data = self.server.deserialize_dictionary(xml_data, 'xml')
         self.assertEqual(deserialized_data, {'key1': 'value1', 'key2': 'value2'})
+
 class TestClientPerformance(unittest.TestCase):
     """Class to test Client class performance"""
     def setUp(self):
@@ -137,8 +152,10 @@ class TestClientPerformance(unittest.TestCase):
         self.port = 12345
         self.client = Client(self.host, self.port)
         self.server = Server(self.host, self.port)
+
     def tearDown(self):
         self.server.server_socket.close()
+
     def test_client_performance(self):
         """Function to test Client performance"""
         # Test sending a large amount of data from client to server
@@ -148,6 +165,7 @@ class TestClientPerformance(unittest.TestCase):
         end_time = time.time()
         execution_time = end_time - start_time
         print(f"Client execution time: {execution_time} seconds")
+
 class DummySocket:
     """Class to initialize placeholder socket object"""
     def __init__(self, data):
@@ -155,13 +173,16 @@ class DummySocket:
     def recv(self, buffer_size):
         """Function to receive data from socket"""
         return self.data
+
 class TestServerPerformance(unittest.TestCase):
     """Class to test Server class performance"""
     buffer_size = 4096  # Define the buffer size
     def setUp(self):
         self.server = Server("127.0.0.1", 12345)
+
     def tearDown(self):
         self.server.server_socket.close()
+
     def test_server_performance(self):
         """Function to test Server performance"""
         # Test receiving a large amount of data by the server
@@ -173,6 +194,7 @@ class TestServerPerformance(unittest.TestCase):
         end_time = time.time()
         execution_time = end_time - start_time
         print(f"Server execution time: {execution_time} seconds")
+
 class TestEdgeCaseNoData(unittest.TestCase):
     """Class to test the no data edge case"""
     def setUp(self):
@@ -180,8 +202,10 @@ class TestEdgeCaseNoData(unittest.TestCase):
         self.port = 12345
         self.server = Server(self.host, self.port)
         self.client = Client(self.host, self.port)
+
     def tearDown(self):
         self.server.server_socket.close()
+
     def test_no_data(self):
         """Function to test when no data such as an empty dictionary is sent to the server"""
         # Start server
@@ -194,6 +218,7 @@ class TestEdgeCaseNoData(unittest.TestCase):
         time.sleep(1)
         # Assert that no data was received by the server
         self.assertEqual(self.server.received_data, None)
+
 class TestEdgeCaseUnexpectedData(unittest.TestCase):
     """Class to test the unexpected data edge case"""
     def setUp(self):
@@ -201,8 +226,10 @@ class TestEdgeCaseUnexpectedData(unittest.TestCase):
         self.port = 12345
         self.server = Server(self.host, self.port)
         self.client = Client(self.host, self.port)
+
     def tearDown(self):
         self.server.server_socket.close()
+
     def test_unexpected_data(self):
         """Function to test when unexpected data is received by the server"""
         # Start server
@@ -217,6 +244,7 @@ class TestEdgeCaseUnexpectedData(unittest.TestCase):
         # Assert that server raises a Value Error when unexpected data is received
         with self.assertRaises(ValueError):
             self.server.handle_client(self.client.client_socket)
+
 class TestEdgeCaseLargeData(unittest.TestCase):
     """Class to test large data edge case"""
     def setUp(self):
@@ -224,8 +252,10 @@ class TestEdgeCaseLargeData(unittest.TestCase):
         self.port = 12345
         self.server = Server(self.host, self.port)
         self.client = Client(self.host, self.port)
+
     def tearDown(self):
         self.server.server_socket.close()
+
     def test_large_data(self):
         """Function to test large data sent to the server"""
         # Start server

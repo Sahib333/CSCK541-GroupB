@@ -12,7 +12,7 @@ The repository can be found at https://github.com/Sahib333/CSCK541-GroupB/
 
 - Start by running the serverclass.py to initialise the server
 - Once the server is running run clientapp.py
-- Follow the prompts provided by the application to send the reuired information to the server
+- Follow the prompts provided by the application to send the required information to the server
 
 ## Components
 ### Server Class

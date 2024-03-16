@@ -28,4 +28,4 @@ The client class connects to the server and transmits data dependant on the file
 The client app is the interface between the system and the user whereby they can specify the the file they would like to send alongside the relevant parameters. If the user selects a dictionary they can serialise in binary, JSON or XML and if its a text file there is the option to encrypt the data.
 
 ## Configuring
-- Modify the host and port settings in both the Server and Client class to match the server configuration. Firthermore for the server configuration alter the initialisation dependant on if the information should be displayed or the data should be saved.
+Modify the host and port settings in both the Server and Client class to match the server configuration. Firthermore for the server configuration alter the initialisation dependant on if the information should be displayed or the data should be saved.

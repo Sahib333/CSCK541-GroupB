@@ -1,0 +1,8 @@
+CSCK541-GroupB/
+├─── LICENSE
+├─── README.md
+├─── requirements.md
+├─── clientapp.py
+├─── clientclass.py
+├─── serverclass.py
+├─── test_unitt.py
